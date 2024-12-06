@@ -756,7 +756,16 @@ if (content.startsWith(".quote")) {
         return message.reply("The referenced message is empty.");
     }
 
-    const canvas = createCanvas(800, 450);
+    let parentMessageContent = null;
+    let parentAuthor = null;
+
+    if (referencedMessage.reference) {
+        const parentMessage = await message.channel.messages.fetch(referencedMessage.reference.messageId);
+        parentMessageContent = parentMessage.content.trim();
+        parentAuthor = parentMessage.author;
+    }
+
+    const canvas = createCanvas(900, 800); 
     const ctx = canvas.getContext('2d');
     ctx.fillStyle = '#000000';
     ctx.fillRect(0, 0, canvas.width, canvas.height);
@@ -766,48 +775,47 @@ if (content.startsWith(".quote")) {
     const avatar = await loadImage(avatarURL);
 
     const avatarX = 30;
-    const avatarY = (canvas.height - avatarSize) / 2;
+    const avatarY = 30;
 
     ctx.save();
     ctx.filter = 'grayscale(100%)';
     ctx.drawImage(avatar, avatarX, avatarY, avatarSize, avatarSize);
     ctx.restore();
 
-    const usernameY = avatarY + avatarSize + 24;
     ctx.font = '24px "Bebas Neue"';
     ctx.fillStyle = 'rgba(255, 255, 255, 0.8)';
-    ctx.fillText(`- 「 ${author.username} 」`, avatarX, usernameY);
+    ctx.fillText(`- 「 ${author.username} 」`, avatarX, avatarY + avatarSize + 24);
 
-    let fontSize = 42;
-    ctx.font = `${fontSize}px "Bebas Neue"`;
-    let maxWidth = canvas.width - (avatarX + avatarSize + 30) - 30;
+    let textY = avatarY;
+    const textX = avatarX + avatarSize + 30;
+    const lineHeight = 50;
+    const maxWidth = canvas.width - textX - 30;
 
-    while (ctx.measureText(quoteMessage).width > maxWidth && fontSize > 16) {
-        fontSize -= 2;
-        ctx.font = `${fontSize}px "Bebas Neue"`;
+    if (parentMessageContent && parentAuthor) {
+        ctx.font = '24px "Bebas Neue"';
+        ctx.fillStyle = 'rgba(255, 255, 255, 0.6)';
+        ctx.fillText(`${parentAuthor.username}:`, textX, textY);
+        textY += lineHeight;
+
+        const parentLines = wrapText(ctx, parentMessageContent, maxWidth, 3);
+        parentLines.forEach((line) => {
+            ctx.fillText(line, textX, textY);
+            textY += lineHeight;
+        });
+
+        textY += 20; 
     }
 
+    ctx.font = '42px "Bebas Neue"';
     ctx.fillStyle = '#ffffff';
-    ctx.textAlign = 'left';
-
-    const textX = avatarX + avatarSize + 30;
-    const lineHeight = fontSize + 10;
-    const maxLines = 5;
-
-    // Move the quote message closer to the top without pushing out
-    let textY = avatarY + 10;  // Set initial position of quote text higher but within bounds
-    const lines = wrapText(ctx, quoteMessage, maxWidth, maxLines);
-    
-    // Ensure text stays within the canvas
-    lines.forEach((line, index) => {
-        const currentY = textY + index * lineHeight;
-        if (currentY + lineHeight < canvas.height - 40) {  // Keep it within the canvas height
-            ctx.fillText(line, textX, currentY);
-        }
+    const quoteLines = wrapText(ctx, quoteMessage, maxWidth, 5);
+    quoteLines.forEach((line) => {
+        ctx.fillText(line, textX, textY);
+        textY += lineHeight;
     });
 
-    ctx.textAlign = 'right';
     ctx.font = '16px "Bebas Neue"';
+    ctx.textAlign = 'right';
     ctx.fillStyle = '#ffffff';
     ctx.fillText("Daze#5473", canvas.width - 20, canvas.height - 20);
 
