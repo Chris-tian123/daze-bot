@@ -16,7 +16,7 @@ const client = new Client({
 registerFont(path.join(__dirname, 'BebasNeue-Regular.ttf'), { family: 'Bebas Neue' });
 const dbURI = "mongodb+srv://Asteral:IAMASWIFTIEGURL@cluster0.ohlpp.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0";
 mongoose.connect(dbURI)
-    .then(() => console.log("Connected to MongoDB".green))
+    .then(() => console.log("Connected to MongoDB".yellow))
     .catch((err) => console.error("Failed to connect to MongoDB", err));
 
 const afkSchema = new mongoose.Schema({
