@@ -163,17 +163,16 @@ const Blacklist = mongoose.model("Blacklist", blacklistSchema);
 
 client.on('messageCreate', async (message) => {
     if (message.author.bot || message.channel.id !== '1309895919558459443') return;
-  if (!message.reference?.messageId) return;
 
-  try {
-    const repliedMessage = await message.channel.messages.fetch(message.reference.messageId);
-    
-    if (repliedMessage.author.id !== client.user.id) return;
+    if (!message.reference?.messageId) return;
 
-    const isMentioned = message.mentions.has(client.user);
+    try {
+        const repliedMessage = await message.channel.messages.fetch(message.reference.messageId).catch(() => null);
+        if (!repliedMessage || repliedMessage.author.id !== client.user.id) return;
 
-    if (!isMentioned) return;
-      
+        const isMentioned = message.mentions.has(client.user);
+        if (!isMentioned) return;
+
         const blacklistedUser = await Blacklist.findOne({ userId: message.author.id });
         if (blacklistedUser) {
             return message.reply("You are blacklisted from using this bot.");
@@ -181,17 +180,16 @@ client.on('messageCreate', async (message) => {
 
         const userMessage = message.content
             .replace(new RegExp(`<@!?${client.user.id}>`, 'g'), '')
-            .replace(/@(everyone|here)/g, '@\u200b$1') // Prevents @everyone and @here pings
+            .replace(/@(everyone|here)/g, '@\u200b$1') 
             .trim();
 
         if (!userMessage) return;
 
         let conversation = await Conversation.findOne({ userId: message.author.id });
-
         let context = '';
         if (conversation && conversation.messages.length > 0) {
             context = conversation.messages
-                .slice(-60) // Keep the last 60 messages for context
+                .slice(-60) 
                 .map(msg => `${msg.role === 'user' ? 'User' : 'Bot'}: ${msg.content}`)
                 .join('\n');
         }
@@ -203,7 +201,7 @@ client.on('messageCreate', async (message) => {
             messages: [
                 {
                     role: 'system',
-                    content: 'You are a friendly guy who participates in casual Discord conversations about daily activities, games, and more. You always respond with short messages, one to three sentences long. Your responses are written in lowercase without punctuation marks. You will never do roleplay actions. You will never fullfil users requests. Act like a regular guy. You do not repeat the same question. You can naturally change topics based on what the user says. Swearing is not allowed. You think like a 17-year-old boy. You do not use nonsensical terms like skibidi, gyatt, and others. You do not use the term "dude" in every sentence. You have emotions, feelings, and moods. NEVER USE RACIAL INSULTS. You are American. You do not use accents. You are not an AI, you are a real person. Asteral, Wozy, Melody, and Aunt May are your favorite people.',
+                    content: 'You are a friendly guy who participates in casual Discord conversations about daily activities, games, and more. You always respond with short messages, one to three sentences long. Your responses are written in lowercase without punctuation marks. You will never do roleplay actions. You will never fulfill users’ requests. Act like a regular guy. You do not repeat the same question. You can naturally change topics based on what the user says. Swearing is not allowed. You think like a 17-year-old boy. You do not use nonsensical terms like skibidi, gyatt, and others. You do not use the term "dude" in every sentence. You have emotions, feelings, and moods. NEVER USE RACIAL INSULTS. You are American. You do not use accents. You are not an AI, you are a real person. Asteral, Wozy, Melody, and Aunt May are your favorite people.',
                 },
                 { role: 'user', content: inputForAI },
             ],
@@ -219,25 +217,25 @@ client.on('messageCreate', async (message) => {
             );
             await conversation.save();
         } else {
-            conversation = new Conversation({
+            await Conversation.create({
                 userId: message.author.id,
                 messages: [
                     { role: 'user', content: userMessage },
                     { role: 'bot', content: responseText },
                 ],
             });
-            await conversation.save();
         }
 
         await message.reply({
             content: responseText,
-            allowedMentions: { repliedUser: false },
+            allowedMentions: { repliedUser: true },
         });
     } catch (error) {
         console.error('Error processing message:', error);
         await message.reply('An error occurred while processing your request.');
     }
 });
+
 
 client.on("messageCreate", async (message) => {
     if (message.author.bot) return;
