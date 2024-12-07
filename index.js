@@ -2,7 +2,7 @@ const { Client, IntentsBitField, EmbedBuilder, PermissionsBitField, ActionRowBui
 const mongoose = require("mongoose");
 const axios = require('axios');
 const colors = require('colors');
-const groq = require('groq-sdk');
+const Groq = require('groq-sdk');
 const { createCanvas, loadImage, registerFont } = require('canvas');
 const path = require('path');
 const client = new Client({
@@ -14,6 +14,7 @@ const client = new Client({
         IntentsBitField.Flags.GuildVoiceStates,
     ],
 });
+const groq = new Groq({ apiKey: "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" });
 registerFont(path.join(__dirname, 'BebasNeue-Regular.ttf'), { family: 'Bebas Neue' });
 const dbURI = "mongodb+srv://Asteral:IAMASWIFTIEGURL@cluster0.ohlpp.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0";
 mongoose.connect(dbURI)
