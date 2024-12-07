@@ -952,7 +952,7 @@ if (content.startsWith(".quote")) {
         parentAuthor = parentMessage.author;
     }
 
-    const canvas = createCanvas(900, 800); 
+    const canvas = createCanvas(700, 800); 
     const ctx = canvas.getContext('2d');
     ctx.fillStyle = '#000000';
     ctx.fillRect(0, 0, canvas.width, canvas.height);
