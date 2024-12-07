@@ -162,7 +162,7 @@ const blacklistSchema = new mongoose.Schema({
 const Blacklist = mongoose.model("Blacklist", blacklistSchema);
 
 client.on('messageCreate', async (message) => {
-    if (message.author.bot || message.channel.id !== '1293993850309836861') return;
+    if (message.author.bot || message.channel.id !== '1309895919558459443') return;
 
     const isReply = message.reference?.messageId;
     const isMentioned = message.mentions.has(client.user);
