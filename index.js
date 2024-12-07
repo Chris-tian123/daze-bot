@@ -169,12 +169,11 @@ client.on('messageCreate', async (message) => {
     const repliedMessage = await message.channel.messages.fetch(message.reference.messageId);
     
     if (repliedMessage.author.id !== client.user.id) return;
-    const isReply = repliedMessage; 
+    let isReply = repliedMessage; 
     const isMentioned = message.mentions.has(client.user);
 
     if (!isReply && !isMentioned) return;
-
-    try {
+      
         const blacklistedUser = await Blacklist.findOne({ userId: message.author.id });
         if (blacklistedUser) {
             return message.reply("You are blacklisted from using this bot.");
