@@ -41,7 +41,7 @@ const FormSchema = new mongoose.Schema({
   answers: [String],
 });
 const Form = mongoose.model("Form", FormSchema);
-let cooldowns = null;
+let cooldowns = new Map();
 const messageSchema = new mongoose.Schema({
   role: { type: String, enum: ['user', 'bot'], required: true },
   content: { type: String, required: true }
@@ -529,57 +529,26 @@ client.on("messageCreate", async (message) => {
         await message.reply({ embeds: [embed] });
     }
     
-    if (message.content.startsWith("πecho")) {
-        const args = message.content.slice(6).trim();
-        const userId = message.author.id;
-        const currentTime = Date.now();
-        const cooldownTime = 10 * 1000; // 10 seconds cooldown
-    
-        if (!args) {
-            const embed = new EmbedBuilder()
-                .setColor("#FF0000")
-                .setTitle("Error")
-                .setDescription("You fool, you need to provide something to echo after the `πecho` command.")
-                .setTimestamp();
-            await message.reply({ embeds: [embed] });
-            return;
-        }
-    
-        if (message.member.permissions.has(PermissionsBitField.Flags.ManageMessages)) {
-            try {
-                await message.delete();
-                await message.channel.send(args);
-            } catch (error) {
-                console.error("Error with πecho command:", error);
-                const embed = new EmbedBuilder()
-                    .setColor("#FF0000")
-                    .setTitle("Error")
-                    .setDescription("AW SHIT, an error occurred in the `πecho` command.")
-                    .setTimestamp();
-    
-                await message.reply({ embeds: [embed] });
-            }
-            return;
-        }
-    
-        if (cooldowns.has(userId)) {
-            const lastUsed = cooldowns.get(userId);
-            if (currentTime - lastUsed < cooldownTime) {
-                const timeLeft = ((cooldownTime - (currentTime - lastUsed)) / 1000).toFixed(1);
-                const embed = new EmbedBuilder()
-                    .setColor("#FF0000")
-                    .setTitle("Cooldown")
-                    .setDescription(`Please wait ${timeLeft} seconds before using \`πecho\` again.`)
-                    .setTimestamp();
-                await message.reply({ embeds: [embed] });
-                return;
-            }
-        }
-    
+if (content.startsWith("πecho")) {
+    const args = message.content.slice(6).trim();
+    const userId = message.author.id;
+    const currentTime = Date.now();
+    const cooldownTime = 10 * 1000;
+
+    if (!args) {
+        const embed = new EmbedBuilder()
+            .setColor("#FF0000")
+            .setTitle("Error")
+            .setDescription("You fool, you need to provide something to echo after the `πecho` command.")
+            .setTimestamp();
+        await message.reply({ embeds: [embed] });
+        return;
+    }
+
+    if (message.member?.permissions.has(PermissionsBitField.Flags.ManageMessages)) {
         try {
             await message.delete();
             await message.channel.send(args);
-            cooldowns.set(userId, currentTime);
         } catch (error) {
             console.error("Error with πecho command:", error);
             const embed = new EmbedBuilder()
@@ -587,10 +556,41 @@ client.on("messageCreate", async (message) => {
                 .setTitle("Error")
                 .setDescription("AW SHIT, an error occurred in the `πecho` command.")
                 .setTimestamp();
-    
+
             await message.reply({ embeds: [embed] });
         }
+        return;
     }
+
+    if (cooldowns.has(userId)) {
+        const lastUsed = cooldowns.get(userId);
+        if (currentTime - lastUsed < cooldownTime) {
+            const timeLeft = ((cooldownTime - (currentTime - lastUsed)) / 1000).toFixed(1);
+            const embed = new EmbedBuilder()
+                .setColor("#FF0000")
+                .setTitle("Cooldown")
+                .setDescription(`Please wait ${timeLeft} seconds before using \`πecho\` again.`)
+                .setTimestamp();
+            await message.reply({ embeds: [embed] });
+            return;
+        }
+    }
+
+    try {
+        await message.delete();
+        await message.channel.send(args);
+        cooldowns.set(userId, currentTime);
+    } catch (error) {
+        console.error("Error with πecho command:", error);
+        const embed = new EmbedBuilder()
+            .setColor("#FF0000")
+            .setTitle("Error")
+            .setDescription("AW SHIT, an error occurred in the `πecho` command.")
+            .setTimestamp();
+
+        await message.reply({ embeds: [embed] });
+    }
+}
     
     if (content.startsWith("πdemote")) {
         const embed = new EmbedBuilder()
