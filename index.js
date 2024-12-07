@@ -175,8 +175,8 @@ client.on('messageCreate', async (message) => {
   if (!user) {
     const embed = new EmbedBuilder()
       .setColor('#0099ff')
-      .setTitle('Welcome to the Bot!')
-      .setDescription('Please read and understand the rules before using the bot.')
+      .setTitle('Welcome to the Daze AI!')
+      .setDescription('Please read and understand the rules before using the AI.')
       .addFields(
         { name: 'Be Respectful', value: 'Treat the bot like any person—avoid offensive language and maintain a friendly tone.' },
         { name: 'No Spam or Flooding', value: 'Don’t spam or flood the chat with repeated messages or excessive symbols.' },
