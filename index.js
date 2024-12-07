@@ -18,12 +18,39 @@ const dbURI = "mongodb+srv://Asteral:IAMASWIFTIEGURL@cluster0.ohlpp.mongodb.net/
 mongoose.connect(dbURI)
     .then(() => console.log("Connected to MongoDB".yellow))
     .catch((err) => console.error("Failed to connect to MongoDB", err));
-// Importing models
-const { Afk } = require('./models/afk.js');
-const { DeletedMessage } = require('./models/deleted.js');
-const { Form } = require('./models/forms.js');
-const { Conversation } = require('./models/convs.js')
-//
+const afkSchema = new mongoose.Schema({
+    userId: { type: String, required: true, unique: true },
+    afkMessage: { type: String, required: true },
+});
+const Afk = mongoose.model("Afk", afkSchema);
+const deletedMessageSchema = new mongoose.Schema({
+    guildId: String,
+    channelId: String,
+    content: String,
+    authorTag: String,
+    timestamp: Date,
+    deletedBy: String
+});
+const DeletedMessage = mongoose.model('DeletedMessage', deletedMessageSchema);
+
+const FormSchema = new mongoose.Schema({
+  userId: String,
+  guildId: String,
+  answers: [String],
+});
+const Form = mongoose.model("Form", FormSchema);
+
+const messageSchema = new mongoose.Schema({
+  role: { type: String, enum: ['user', 'bot'], required: true },
+  content: { type: String, required: true }
+});
+
+const conversationSchema = new mongoose.Schema({
+  userId: { type: String, required: true },
+  messages: { type: [messageSchema], required: true }
+});
+
+const Conversation = mongoose.model("Conversation", conversationSchema);
 
 client.setMaxListeners(20);
 // Error Reporter
