@@ -701,17 +701,17 @@ if (content.startsWith("πecho")) {
         await message.reply({ embeds: [embed] });
     }
     
-    if (content.startsWith(".snipe")) {
+if (content.startsWith(".snipe")) {
     if (message.member?.permissions.has(PermissionsBitField.Flags.ManageMessages)) {
         const deletedMessages = await DeletedMessage.find({
             guildId: message.guild.id,
             channelId: message.channel.id
         }).sort({ timestamp: -1 }).limit(10);
-    
+
         if (!deletedMessages.length) {
             return message.reply("No recently deleted messages found here.");
         }
-    
+
         const createEmbed = (index) => {
             const msg = deletedMessages[index];
             return new EmbedBuilder()
@@ -725,10 +725,10 @@ if (content.startsWith("πecho")) {
                 .setTimestamp(msg.timestamp)
                 .setFooter({ text: `Message ${index + 1} of ${deletedMessages.length}` });
         };
-    
+
         let pageIndex = 0;
         const embedMessage = await message.reply({ embeds: [createEmbed(pageIndex)], components: [getActionRow()] });
-    
+
         function getActionRow() {
             return new ActionRowBuilder().addComponents(
                 new ButtonBuilder()
@@ -743,22 +743,29 @@ if (content.startsWith("πecho")) {
                     .setDisabled(pageIndex === deletedMessages.length - 1)
             );
         }
-    
+
         const collector = embedMessage.createMessageComponentCollector({ time: 60000 });
+
         collector.on('collect', async (interaction) => {
+            if (!interaction.member.permissions.has(PermissionsBitField.Flags.ManageMessages)) {
+                return interaction.reply({ content: "You do not have permission to use this button.", ephemeral: true });
+            }
+
             if (interaction.customId === 'prev') pageIndex--;
             if (interaction.customId === 'next') pageIndex++;
-    
+
             await interaction.update({
                 embeds: [createEmbed(pageIndex)],
                 components: [getActionRow()]
             });
         });
-    
+
         collector.on('end', async () => {
             await embedMessage.edit({ components: [] });
         });
-    }}
+    }
+}
+
     
     if (content.startsWith("πpermban") && !message.author.bot) {
         const userId = content.split(" ")[1];
