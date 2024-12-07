@@ -199,8 +199,12 @@ client.on('messageCreate', async (message) => {
 
     await message.author.send({ embeds: [embed], components: [row] });
 
-    await User.create({ userId: message.author.id, hasInteracted: true });
+    await User.create({ userId: message.author.id, hasInteracted: false });
 
+    return;
+  }
+  if (!user.hasInteracted) {
+    await message.author.send('You need to click the "I understand the consequences" button before you can interact with the bot.');
     return;
   }
   const isBlacklisted = await Blacklist.findOne({ userId: message.author.id });
@@ -1077,38 +1081,53 @@ client.on('interactionCreate', async (interaction) => {
 
     const [action, userId, messageId] = interaction.customId.split('_');
 
-    const requestData = requests.get(messageId);
-    if (!requestData) {
-        return interaction.reply({ content: 'Request not found.', ephemeral: true });
+    if (action === 'accept' || action === 'reject') {
+        const requestData = requests.get(messageId);
+        if (!requestData) {
+            return interaction.reply({ content: 'Request not found.', ephemeral: true });
+        }
+
+        const reviewChannel = await client.channels.fetch(reviewChannelId);
+        const reviewMessage = await reviewChannel.messages.fetch(requestData.reviewMessageId);
+
+        if (action === 'accept') {
+            const acceptEmbed = new EmbedBuilder()
+                .setColor('#00FF00')
+                .setTitle('Request Accepted')
+                .setDescription(`Your request has been accepted: ${requestData.content}`)
+                .setTimestamp();
+
+            await client.users.fetch(userId).then(user => user.send({ embeds: [acceptEmbed] }));
+            await reviewMessage.edit({ content: 'Request accepted.', components: [] });
+            requests.delete(messageId);
+        } else if (action === 'reject') {
+            const rejectEmbed = new EmbedBuilder()
+                .setColor('#FF0000')
+                .setTitle('Request Rejected')
+                .setDescription(`Your request has been rejected: ${requestData.content}`)
+                .setTimestamp();
+
+            await client.users.fetch(userId).then(user => user.send({ embeds: [rejectEmbed] }));
+            await reviewMessage.edit({ content: 'Request rejected.', components: [] });
+            requests.delete(messageId);
+        }
+
+        await interaction.reply({ content: `Request ${action}ed.`, ephemeral: true });
     }
 
-    const reviewChannel = await client.channels.fetch(reviewChannelId);
-    const reviewMessage = await reviewChannel.messages.fetch(requestData.reviewMessageId);
+    if (interaction.customId === 'acknowledge') {
+        const user = await User.findOne({ userId: interaction.user.id });
+        if (!user) return;
 
-    if (action === 'accept') {
-        const acceptEmbed = new EmbedBuilder()
-            .setColor('#00FF00')
-            .setTitle('Request Accepted')
-            .setDescription(`Your request has been accepted: ${requestData.content}`)
-            .setTimestamp();
+        // Mark the user as interacted
+        user.hasInteracted = true;
+        await user.save();
 
-        await client.users.fetch(userId).then(user => user.send({ embeds: [acceptEmbed] }));
-        await reviewMessage.edit({ content: 'Request accepted.', components: [] });
-        requests.delete(messageId);
-    } else if (action === 'reject') {
-        const rejectEmbed = new EmbedBuilder()
-            .setColor('#FF0000')
-            .setTitle('Request Rejected')
-            .setDescription(`Your request has been rejected: ${requestData.content}`)
-            .setTimestamp();
-
-        await client.users.fetch(userId).then(user => user.send({ embeds: [rejectEmbed] }));
-        await reviewMessage.edit({ content: 'Request rejected.', components: [] });
-        requests.delete(messageId);
+        await interaction.reply({
+            content: 'Thank you for acknowledging the rules! You can now interact with the bot.',
+            ephemeral: true,
+        });
     }
-
-    await interaction.reply({ content: `Request ${action}ed.`, ephemeral: true });
 });
-
 
 client.login('MTA3MDgyMzg2MTM3OTE0OTg3NA.GDkT7U.Bt7sZtsijnLNpjSaeRkdu-PpbTdORf9IlFo2mw')
