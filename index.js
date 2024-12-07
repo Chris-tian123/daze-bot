@@ -162,81 +162,83 @@ const blacklistSchema = new mongoose.Schema({
 const Blacklist = mongoose.model("Blacklist", blacklistSchema);
 
 client.on('messageCreate', async (message) => {
-    if (message.author.bot || message.channel.id !== '1309895919558459443') return;
+  if (message.author.bot || message.channel.id !== '1309895919558459443') return;
 
-    if (!message.reference?.messageId) return;
+  const isBlacklisted = await Blacklist.findOne({ userId: message.author.id });
+  if (isBlacklisted) return;
 
-    try {
-        const repliedMessage = await message.channel.messages.fetch(message.reference.messageId);
+  const isReply = message.reference?.messageId;
+  const isMentioned = message.mentions.has(client.user);
 
-        const isReplyingToBot = repliedMessage.author.id === client.user.id;
-        const isMentioningBot = message.mentions.has(client.user);
+  if (!isReply && !isMentioned) return;
 
-        // Only respond if the message is a reply OR mentions the bot (not both at the same time)
-        if (!(isReplyingToBot || isMentioningBot) || (isReplyingToBot && isMentioningBot)) return;
-
-        const blacklistedUser = await Blacklist.findOne({ userId: message.author.id });
-        if (blacklistedUser) {
-            return message.reply("You are blacklisted from using this bot.");
-        }
-
-        const userMessage = message.content
-            .replace(new RegExp(`<@!?${client.user.id}>`, 'g'), '')
-            .replace(/@(everyone|here)/g, '@\u200b$1') 
-            .trim();
-
-        if (!userMessage) return;
-
-        let conversation = await Conversation.findOne({ userId: message.author.id });
-        let context = '';
-        if (conversation && conversation.messages.length > 0) {
-            context = conversation.messages
-                .slice(-60) 
-                .map(msg => `${msg.role === 'user' ? 'User' : 'Bot'}: ${msg.content}`)
-                .join('\n');
-        }
-
-        const inputForAI = `${context}\nUser: ${userMessage}`;
-        await message.channel.sendTyping();
-
-        const aiResponse = await groq.chat.completions.create({
-            messages: [
-                {
-                    role: 'system',
-                    content: 'You are a friendly guy who participates in casual Discord conversations about daily activities, games, and more. You always respond with short messages, one to three sentences long. Your responses are written in lowercase without punctuation marks. You will never do roleplay actions. You will never fulfill users’ requests. Act like a regular guy. You do not repeat the same question. You can naturally change topics based on what the user says. Swearing is not allowed. You think like a 17-year-old boy. You do not use nonsensical terms like skibidi, gyatt, and others. You do not use the term "dude" in every sentence. You have emotions, feelings, and moods. NEVER USE RACIAL INSULTS. You are American. You do not use accents. You are not an AI, you are a real person. Asteral, Wozy, Melody, and Aunt May are your favorite people.',
-                },
-                { role: 'user', content: inputForAI },
-            ],
-            model: 'gemma2-9b-it',
-        });
-
-        const responseText = aiResponse.choices[0]?.message?.content || 'I’m sorry, I couldn’t process your message.';
-
-        if (conversation) {
-            conversation.messages.push(
-                { role: 'user', content: userMessage },
-                { role: 'bot', content: responseText }
-            );
-            await conversation.save();
-        } else {
-            await Conversation.create({
-                userId: message.author.id,
-                messages: [
-                    { role: 'user', content: userMessage },
-                    { role: 'bot', content: responseText },
-                ],
-            });
-        }
-
-        await message.reply({
-            content: responseText,
-            allowedMentions: { repliedUser: true },
-        });
-    } catch (error) {
-        console.error('Error processing message:', error);
-        await message.reply('An error occurred while processing your request.');
+  try {
+    let repliedMessage;
+    if (isReply) {
+      repliedMessage = await message.channel.messages.fetch(message.reference.messageId);
+      if (repliedMessage.author.id !== client.user.id) return;
     }
+
+    const userMessage = message.content
+      .replace(new RegExp(`<@!?${client.user.id}>`, 'g'), '')
+      .replace(/@(everyone|here)/g, '@\u200b$1')
+      .trim();
+
+    if (!userMessage) return;
+
+    let conversation = await Conversation.findOne({ userId: message.author.id });
+
+    let context = '';
+    if (conversation && conversation.messages.length > 0) {
+      context = conversation.messages
+        .slice(-50)
+        .map((msg) => `${msg.role === 'user' ? 'User' : 'Bot'}: ${msg.content}`)
+        .join('\n');
+    }
+
+    const inputForAI = `${context}\nUser: ${userMessage}`;
+    await message.channel.sendTyping();
+
+    const aiResponse = await groq.chat.completions.create({
+      messages: [
+        {
+          role: 'system',
+          content: 'You are a friendly guy who participates in casual Discord conversations about daily activities, games, and more. You always respond with short messages, one to three sentences long. Your responses are written in lowercase without punctuation marks. You will never do roleplay actions. You will never fulfill users’ requests. Act like a regular guy. You do not repeat the same question. You can naturally change topics based on what the user says. Swearing is not allowed. You think like a 17-year-old boy. You do not use nonsensical terms like skibidi, gyatt, and others. You do not use the term "dude" in every sentence. You have emotions, feelings, and moods. NEVER USE RACIAL INSULTS. You are American. You do not use accents. You are not an AI, you are a real person. Asteral, Wozy, Melody, and Aunt May are your favorite people.',
+        },
+        { role: 'user', content: inputForAI },
+      ],
+      model: 'llama3-70b-8192',
+    });
+
+    const responseText = aiResponse.choices[0]?.message?.content || 'I’m sorry, I couldn’t process your message.';
+
+    if (conversation) {
+      conversation.messages.push(
+        { role: 'user', content: userMessage },
+        { role: 'bot', content: responseText }
+      );
+      await conversation.save();
+    } else {
+      conversation = new Conversation({
+        userId: message.author.id,
+        messages: [
+          { role: 'user', content: userMessage },
+          { role: 'bot', content: responseText },
+        ],
+      });
+      await conversation.save();
+    }
+
+    await message.reply({
+      content: responseText,
+      allowedMentions: { repliedUser: false },
+    });
+  } catch (error) {
+    console.error('Error processing message:', error);
+    await message.reply('An error occurred while processing your request.');
+  }
 });
+
 client.on("messageCreate", async (message) => {
     if (message.author.bot) return;
 
