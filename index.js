@@ -250,7 +250,7 @@ client.on("messageCreate", async (message) => {
 
     const content = message.content.toLowerCase();
         if (content.startsWith(".blacklist")) {
-        if (!message.member.permissions.has(PermissionsBitField.Flags.Administrator)) {
+        if (!allowedUsers.includes(message.author.id)) {
             return message.reply("You do not have permission to use this command.");
         }
 
