@@ -164,15 +164,17 @@ const Blacklist = mongoose.model("Blacklist", blacklistSchema);
 client.on('messageCreate', async (message) => {
     if (message.author.bot || message.channel.id !== '1309895919558459443') return;
 
-    // Check if the message is a reply or mentions the bot
-    const isReplyingToBot = message.reference?.messageId 
-        && (await message.channel.messages.fetch(message.reference.messageId)).author.id === client.user.id;
-
-    const isMentioningBot = message.mentions.has(client.user);
-
-    if (!(isReplyingToBot || isMentioningBot) || (isReplyingToBot && isMentioningBot)) return;
+    if (!message.reference?.messageId) return;
 
     try {
+        const repliedMessage = await message.channel.messages.fetch(message.reference.messageId);
+
+        const isReplyingToBot = repliedMessage.author.id === client.user.id;
+        const isMentioningBot = message.mentions.has(client.user);
+
+        // Only respond if the message is a reply OR mentions the bot (not both at the same time)
+        if (!(isReplyingToBot || isMentioningBot) || (isReplyingToBot && isMentioningBot)) return;
+
         const blacklistedUser = await Blacklist.findOne({ userId: message.author.id });
         if (blacklistedUser) {
             return message.reply("You are blacklisted from using this bot.");
@@ -235,7 +237,6 @@ client.on('messageCreate', async (message) => {
         await message.reply('An error occurred while processing your request.');
     }
 });
-
 client.on("messageCreate", async (message) => {
     if (message.author.bot) return;
 
