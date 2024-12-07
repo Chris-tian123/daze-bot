@@ -155,6 +155,10 @@ function startReminderSchedule() {
     }, reminderInterval);
     console.log("Reminder schedule started with a 15-hour interval.");
 }
+const userSchema = new mongoose.Schema({
+  userId: { type: String, required: true, unique: true }, 
+  hasInteracted: { type: Boolean, default: false },
+const User = mongoose.model('User', userSchema);
 const blacklistSchema = new mongoose.Schema({
     userId: { type: String, required: true, unique: true }
 });
@@ -163,7 +167,38 @@ const Blacklist = mongoose.model("Blacklist", blacklistSchema);
 
 client.on('messageCreate', async (message) => {
   if (message.author.bot || message.channel.id !== '1309895919558459443') return;
+  const user = await User.findOne({ userId: message.author.id });
+      if (!user) {
+          const embed = new EmbedBuilder()
+                .setColor('#0099ff')
+                .setTitle('Welcome to the Bot!')
+                .setDescription('Please read and understand the rules before using the bot.')
+                .addFields(
+                    { name: 'Be Respectful', value: 'Treat the bot like any person—avoid offensive language and maintain a friendly tone.' },
+                    { name: 'No Spam or Flooding', value: 'Don’t spam or flood the chat with repeated messages or excessive symbols.' },
+                    { name: 'No Offensive Content', value: 'Don’t share or ask for inappropriate, illegal, or harmful content.' },
+                    { name: 'No Personal Information', value: 'Don’t share personal details like your name, address, phone number, or financial info.' },
+                    { name: 'Follow the Topic', value: 'Keep the conversation relevant and appropriate to the context.' },
+                    { name: 'No Roleplaying or Over-the-top Requests', value: 'Avoid asking the bot to roleplay or fulfill unrealistic requests.' },
+                    { name: 'No Violence or Hate Speech', value: 'Hate speech, threats, or harmful speech won’t be tolerated.' },
+                    { name: 'No Promotions or Advertising', value: 'The bot is not for promoting products, services, or websites.' },
+                    { name: 'Keep Conversations Positive', value: 'Maintain a fun and friendly environment with lighthearted conversations.' },
+                    { name: 'Report Any Issues', value: 'If something’s wrong with the bot, let the moderators know for improvement.' }
+                );
 
+    const row = new ActionRowBuilder().addComponents(
+      new ButtonBuilder()
+        .setCustomId('acknowledge')
+        .setLabel('I understand the consequences')
+        .setStyle(ButtonStyle.Primary)
+    );
+
+    await message.author.send({ embeds: [embed], components: [row] });
+
+    await UserInteractions.create({ userId: message.author.id, hasInteracted: true });
+
+    return;
+  }
   const isBlacklisted = await Blacklist.findOne({ userId: message.author.id });
   if (isBlacklisted) return;
 
