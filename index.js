@@ -204,7 +204,7 @@ client.on('messageCreate', async (message) => {
     return;
   }
   if (!user.hasInteracted) {
-    await message.author.send('You need to click the "I understand the consequences" button before you can interact with the bot.');
+    await message.author.send('You need to click the "I understand the consequences" button before you can interact with the bot.', ephemeral: true);
     return;
   }
   const isBlacklisted = await Blacklist.findOne({ userId: message.author.id });
