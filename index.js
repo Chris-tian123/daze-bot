@@ -2,6 +2,7 @@ const { Client, IntentsBitField, EmbedBuilder, PermissionsBitField, ActionRowBui
 const mongoose = require("mongoose");
 const axios = require('axios');
 const colors = require('colors');
+const groq = require('groq-sdk');
 const { createCanvas, loadImage, registerFont } = require('canvas');
 const path = require('path');
 const client = new Client({
@@ -76,7 +77,7 @@ async function sendErrorToWebhook(error) {
         console.error('Failed to send error to webhook:', err);
     }
 }
-
+let allowedUsers = ['870366927653056582', '904605341310930954']
 process.on('unhandledRejection', sendErrorToWebhook);
 process.on('uncaughtException', sendErrorToWebhook);
 
@@ -111,11 +112,11 @@ const channelIds = [
     "1314668341075378278",
 ];
 
-let remindersEnabled = true;
+let remindersEnabled = false;
 let reminderIntervalId = null;
 
 client.once("ready", () => {
-    console.log("Bot is online!".yellow);
+    console.log("Bot is online!".cyan);
     startReminderSchedule();
 });
 
