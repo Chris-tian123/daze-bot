@@ -168,7 +168,7 @@ client.on('messageCreate', async (message) => {
 
     try {
         const repliedMessage = await message.channel.messages.fetch(message.reference.messageId).catch(() => null);
-        if (!repliedMessage || repliedMessage.author.id !== client.user.id) return;
+        if (!repliedMessage !== client.user.id) return;
 
         const isMentioned = message.mentions.has(client.user);
         if (!isMentioned) return;
