@@ -163,30 +163,27 @@ const Blacklist = mongoose.model("Blacklist", blacklistSchema);
 
 client.on('messageCreate', async (message) => {
     if (message.author.bot || message.channel.id !== '1309895919558459443') return;
-
-  if (!message.reference?.messageId) return;
-
-  try {
-    const repliedMessage = await message.channel.messages.fetch(message.reference.messageId);
-    
-    if (repliedMessage.author.id !== client.user.id) return;
-        const isMentioned = message.mentions.has(client.user);
-        if (!isMentioned) return;
-
         const blacklistedUser = await Blacklist.findOne({ userId: message.author.id });
         if (blacklistedUser) {
             return message.reply("You are blacklisted from using this bot.");
         }
+  const isMentioningBot = message.mentions.has(client.user);
+  const isReplyingToBot = message.reference?.messageId && (await message.channel.messages.fetch(message.reference.messageId)).author.id === client.user.id;
 
-        const userMessage = message.content
-            .replace(new RegExp(`<@!?${client.user.id}>`, 'g'), '')
-            .replace(/@(everyone|here)/g, '@\u200b$1') 
-            .trim();
+  if (!isMentioningBot && !isReplyingToBot) return;
 
-        if (!userMessage) return;
+  try {
+    const userMessage = message.content.trim().replace(`<@${client.user.id}>`, '').trim(); // Remove mention text
+    let conversation = await Conversation.findOne({ userId: message.author.id });
+
+    let context = '';
+    if (conversation) {
+      context = conversation.messages
+        .map(msg => `${msg.role === 'user' ? 'User' : 'Bot'}: ${msg.content}`)
+        .join('\n');
+    }
 
         let conversation = await Conversation.findOne({ userId: message.author.id });
-        let context = '';
         if (conversation && conversation.messages.length > 0) {
             context = conversation.messages
                 .slice(-60) 
