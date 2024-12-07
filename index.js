@@ -1077,10 +1077,6 @@ client.on('interactionCreate', async (interaction) => {
 
     const [action, userId, messageId] = interaction.customId.split('_');
 
-    if (interaction.user.id !== userId && !interaction.member.permissions.has(PermissionsBitField.Flags.ManageMessages)) {
-        return interaction.reply({ content: 'You do not have permission to perform this action.', ephemeral: true });
-    }
-
     const requestData = requests.get(messageId);
     if (!requestData) {
         return interaction.reply({ content: 'Request not found.', ephemeral: true });
