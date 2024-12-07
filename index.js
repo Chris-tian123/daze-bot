@@ -466,7 +466,8 @@ client.on("messageCreate", async (message) => {
                 { name: ".numberbug", value: "The famous number bug. If a member has this issue it will ask the member for their details (phone number and location) to get the issue reported." },
                 { name: ".remind", value: "Displays the current reminder!" },
                 { name: ".staffapp", value: "Gives members a link to the mod application." },
-                { name: ".overload", value: "Server overload announcement." }
+                { name: ".overload", value: "Server overload announcement." },
+                { name: ".snipe", value: "View the messages that got deleted in the channel"}
             )
             .setTimestamp();
         await message.reply({ embeds: [embed] });
@@ -700,7 +701,8 @@ if (content.startsWith("πecho")) {
         await message.reply({ embeds: [embed] });
     }
     
-    if (message.content.startsWith(".snipe")) {
+    if (content.startsWith(".snipe")) {
+    if (message.member?.permissions.has(PermissionsBitField.Flags.ManageMessages)) {
         const deletedMessages = await DeletedMessage.find({
             guildId: message.guild.id,
             channelId: message.channel.id
@@ -756,7 +758,7 @@ if (content.startsWith("πecho")) {
         collector.on('end', async () => {
             await embedMessage.edit({ components: [] });
         });
-    }
+    }}
     
     if (content.startsWith("πpermban") && !message.author.bot) {
         const userId = content.split(" ")[1];
