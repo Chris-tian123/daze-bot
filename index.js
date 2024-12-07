@@ -164,12 +164,12 @@ const Blacklist = mongoose.model("Blacklist", blacklistSchema);
 client.on('messageCreate', async (message) => {
     if (message.author.bot || message.channel.id !== '1309895919558459443') return;
 
-    if (!message.reference?.messageId) return;
+  if (!message.reference?.messageId) return;
 
-    try {
-        const repliedMessage = await message.channel.messages.fetch(message.reference.messageId).catch(() => null);
-      if (!repliedMessage || repliedMessage.author.id !== client.user.id) return; 
-
+  try {
+    const repliedMessage = await message.channel.messages.fetch(message.reference.messageId);
+    
+    if (repliedMessage.author.id !== client.user.id) return;
         const isMentioned = message.mentions.has(client.user);
         if (!isMentioned) return;
 
