@@ -1007,7 +1007,7 @@ if (content.startsWith(".quote")) {
     ctx.fillText("Daze#5473", canvas.width - 20, canvas.height - 20);
 
     const attachment = new AttachmentBuilder(canvas.toBuffer('image/png'), { name: 'quote-image.png' });
-    await message.reply({ files: [attachment] });
+    await message.reply({ content: "under maintenance", ephemeral: true});
 }
 
 function wrapText(ctx, text, maxWidth, maxLines) {
