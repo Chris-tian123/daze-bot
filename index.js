@@ -27,7 +27,7 @@ const { Conversation } = require('./models/convs.js')
 
 client.setMaxListeners(20);
 // Error Reporter
-const webhookURL = 'https://discord.com/api/webhooks/1314666788918661211/oOAt2iBGH1HIwNKhjPsuPCauyjKI_nvKmRarfBq_397QyXmVaycwHj4kCEiL-vTsrNbl';
+const webhookURL = 'https://discord.com/api/webhooks/1306653055734911046/drIzalNkabrbh1zlmoXXrUzkz_1oa0GXA0RiLLfS1ePcKs7LfOQMAWnqkWFIQyVC51Ou';
 
 async function sendErrorToWebhook(error) {
     try {
@@ -133,50 +133,7 @@ const blacklistSchema = new mongoose.Schema({
 const Blacklist = mongoose.model("Blacklist", blacklistSchema);
 
 client.on('messageCreate', async (message) => {
-    if (message.author.bot || message.channel.id !== '1293993850309836861' || message.author.id === '740626575501951078') return;
-
-    const content = message.content.toLowerCase().trim();
-
-    if (content.startsWith(".blacklist")) {
-        if (!message.member.permissions.has(PermissionsBitField.Flags.Administrator)) {
-            return message.reply("You do not have permission to use this command.");
-        }
-
-        const args = content.split(' ').slice(1);
-        if (args.length < 2) {
-            return message.reply("Please provide a valid command. Example: `.blacklist add @user` or `.blacklist remove @user`");
-        }
-
-        const command = args[0];
-        const user = message.mentions.users.first();
-
-        if (!user) {
-            return message.reply("Please mention a valid user.");
-        }
-
-        if (command === 'add') {
-            let blacklistedUser = await Blacklist.findOne({ userId: user.id });
-            if (blacklistedUser) {
-                return message.reply("This user is already blacklisted.");
-            }
-
-            blacklistedUser = new Blacklist({ userId: user.id });
-            await blacklistedUser.save();
-            return message.reply(`User ${user.tag} has been blacklisted.`);
-        }
-
-        if (command === 'remove') {
-            const blacklistedUser = await Blacklist.findOne({ userId: user.id });
-            if (!blacklistedUser) {
-                return message.reply("This user is not blacklisted.");
-            }
-
-            await Blacklist.deleteOne({ userId: user.id });
-            return message.reply(`User ${user.tag} has been removed from the blacklist.`);
-        }
-
-        return message.reply("Invalid command. Example: `.blacklist add @user` or `.blacklist remove @user`");
-    }
+    if (message.author.bot || message.channel.id !== '1293993850309836861') return;
 
     const isReply = message.reference?.messageId;
     const isMentioned = message.mentions.has(client.user);
@@ -219,7 +176,7 @@ client.on('messageCreate', async (message) => {
             messages: [
                 {
                     role: 'system',
-                    content: 'Vorbesti doar Romana. Ești un tip prietenos care participă la conversații casual pe Discord despre activitățile zilnice, jocuri și altele. Răspunzi mereu cu mesaje scurte, de una până la trei propoziții. Răspunsurile tale sunt scrise cu litere mici, fără semne de punctuație. Nu faci niciodată acțiuni de rol. Comportă-te ca un tip obișnuit. Nu repeți aceeași întrebare. Poți schimba subiectele natural, în funcție de ceea ce spune utilizatorul. Înjurăturile sunt permise. Gândești ca un băiat de 17 ani. Nu folosești termeni fără sens, precum skibidi, gyatt și altele. Nu folosești termenul „dude” în fiecare propoziție. Ai emoții, sentimente și stări. NU FOLOSI NICIODATĂ INSULTE RASIALE. Ești american. Nu folosești accente. Nu ești un AI, ești o persoană reală. Asteral, Trevor, Wozy, Melody și Aunt May sunt oamenii tăi preferați.',
+                    content: 'You are a friendly guy who participates in casual Discord conversations about daily activities, games, and more. You always respond with short messages, one to three sentences long. Your responses are written in lowercase without punctuation marks. You will never do roleplay actions. You will never fullfil users requests. Act like a regular guy. You do not repeat the same question. You can naturally change topics based on what the user says. Swearing is not allowed. You think like a 17-year-old boy. You do not use nonsensical terms like skibidi, gyatt, and others. You do not use the term "dude" in every sentence. You have emotions, feelings, and moods. NEVER USE RACIAL INSULTS. You are American. You do not use accents. You are not an AI, you are a real person. Asteral, Wozy, Melody, and Aunt May are your favorite people.',
                 },
                 { role: 'user', content: inputForAI },
             ],
@@ -259,6 +216,46 @@ client.on("messageCreate", async (message) => {
     if (message.author.bot) return;
 
     const content = message.content.toLowerCase();
+        if (content.startsWith(".blacklist")) {
+        if (!message.member.permissions.has(PermissionsBitField.Flags.Administrator)) {
+            return message.reply("You do not have permission to use this command.");
+        }
+
+        const args = content.split(' ').slice(1);
+        if (args.length < 2) {
+            return message.reply("Please provide a valid command. Example: `.blacklist add @user` or `.blacklist remove @user`");
+        }
+
+        const command = args[0];
+        const user = message.mentions.users.first();
+
+        if (!user) {
+            return message.reply("Please mention a valid user.");
+        }
+
+        if (command === 'add') {
+            let blacklistedUser = await Blacklist.findOne({ userId: user.id });
+            if (blacklistedUser) {
+                return message.reply("This user is already blacklisted.");
+            }
+
+            blacklistedUser = new Blacklist({ userId: user.id });
+            await blacklistedUser.save();
+            return message.reply(`User ${user.tag} has been blacklisted.`);
+        }
+
+        if (command === 'remove') {
+            const blacklistedUser = await Blacklist.findOne({ userId: user.id });
+            if (!blacklistedUser) {
+                return message.reply("This user is not blacklisted.");
+            }
+
+            await Blacklist.deleteOne({ userId: user.id });
+            return message.reply(`User ${user.tag} has been removed from the blacklist.`);
+        }
+
+        return message.reply("Invalid command. Example: `.blacklist add @user` or `.blacklist remove @user`");
+    }
     if (content.startsWith("?reminder")) {
         const args = content.split(" ");
         const embed = new EmbedBuilder()
@@ -1052,4 +1049,4 @@ client.on('interactionCreate', async (interaction) => {
 });
 
 
-client.login('MTA5Mzg4NTY1ODY0MjI2ODI1Mg.GLl1VG.tT_J2dXuQ8SBCd8DNN7wRtHCGGTFoCrPUUHqEQ')
+client.login('MTA3MDgyMzg2MTM3OTE0OTg3NA.GDkT7U.Bt7sZtsijnLNpjSaeRkdu-PpbTdORf9IlFo2mw')
