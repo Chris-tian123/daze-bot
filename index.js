@@ -22,7 +22,7 @@ mongoose.connect(dbURI)
 const { Afk } = require('./models/afk.js');
 const { DeletedMessage } = require('./models/deleted.js');
 const { Form } = require('./models/forms.js');
-const { Conversations } = require('./models/convs.js')
+const { Conversation } = require('./models/convs.js')
 //
 
 client.setMaxListeners(20);
@@ -126,6 +126,134 @@ function startReminderSchedule() {
     }, reminderInterval);
     console.log("Reminder schedule started with a 15-hour interval.");
 }
+const blacklistSchema = new mongoose.Schema({
+    userId: { type: String, required: true, unique: true }
+});
+
+const Blacklist = mongoose.model("Blacklist", blacklistSchema);
+
+client.on('messageCreate', async (message) => {
+    if (message.author.bot || message.channel.id !== '1293993850309836861' || message.author.id === '740626575501951078') return;
+
+    const content = message.content.toLowerCase().trim();
+
+    if (content.startsWith(".blacklist")) {
+        if (!message.member.permissions.has(PermissionsBitField.Flags.Administrator)) {
+            return message.reply("You do not have permission to use this command.");
+        }
+
+        const args = content.split(' ').slice(1);
+        if (args.length < 2) {
+            return message.reply("Please provide a valid command. Example: `.blacklist add @user` or `.blacklist remove @user`");
+        }
+
+        const command = args[0];
+        const user = message.mentions.users.first();
+
+        if (!user) {
+            return message.reply("Please mention a valid user.");
+        }
+
+        if (command === 'add') {
+            let blacklistedUser = await Blacklist.findOne({ userId: user.id });
+            if (blacklistedUser) {
+                return message.reply("This user is already blacklisted.");
+            }
+
+            blacklistedUser = new Blacklist({ userId: user.id });
+            await blacklistedUser.save();
+            return message.reply(`User ${user.tag} has been blacklisted.`);
+        }
+
+        if (command === 'remove') {
+            const blacklistedUser = await Blacklist.findOne({ userId: user.id });
+            if (!blacklistedUser) {
+                return message.reply("This user is not blacklisted.");
+            }
+
+            await Blacklist.deleteOne({ userId: user.id });
+            return message.reply(`User ${user.tag} has been removed from the blacklist.`);
+        }
+
+        return message.reply("Invalid command. Example: `.blacklist add @user` or `.blacklist remove @user`");
+    }
+
+    const isReply = message.reference?.messageId;
+    const isMentioned = message.mentions.has(client.user);
+
+    if (!isReply && !isMentioned) return;
+
+    try {
+        const blacklistedUser = await Blacklist.findOne({ userId: message.author.id });
+        if (blacklistedUser) {
+            return message.reply("You are blacklisted from using this bot.");
+        }
+
+        let repliedMessage;
+        if (isReply) {
+            repliedMessage = await message.channel.messages.fetch(message.reference.messageId);
+            if (repliedMessage.author.id !== client.user.id) return;
+        }
+
+        const userMessage = message.content
+            .replace(new RegExp(`<@!?${client.user.id}>`, 'g'), '')
+            .replace(/@(everyone|here)/g, '@\u200b$1') // Prevents @everyone and @here pings
+            .trim();
+
+        if (!userMessage) return;
+
+        let conversation = await Conversation.findOne({ userId: message.author.id });
+
+        let context = '';
+        if (conversation && conversation.messages.length > 0) {
+            context = conversation.messages
+                .slice(-60) // Keep the last 60 messages for context
+                .map(msg => `${msg.role === 'user' ? 'User' : 'Bot'}: ${msg.content}`)
+                .join('\n');
+        }
+
+        const inputForAI = `${context}\nUser: ${userMessage}`;
+        await message.channel.sendTyping();
+
+        const aiResponse = await groq.chat.completions.create({
+            messages: [
+                {
+                    role: 'system',
+                    content: 'Vorbesti doar Romana. Ești un tip prietenos care participă la conversații casual pe Discord despre activitățile zilnice, jocuri și altele. Răspunzi mereu cu mesaje scurte, de una până la trei propoziții. Răspunsurile tale sunt scrise cu litere mici, fără semne de punctuație. Nu faci niciodată acțiuni de rol. Comportă-te ca un tip obișnuit. Nu repeți aceeași întrebare. Poți schimba subiectele natural, în funcție de ceea ce spune utilizatorul. Înjurăturile sunt permise. Gândești ca un băiat de 17 ani. Nu folosești termeni fără sens, precum skibidi, gyatt și altele. Nu folosești termenul „dude” în fiecare propoziție. Ai emoții, sentimente și stări. NU FOLOSI NICIODATĂ INSULTE RASIALE. Ești american. Nu folosești accente. Nu ești un AI, ești o persoană reală. Asteral, Trevor, Wozy, Melody și Aunt May sunt oamenii tăi preferați.',
+                },
+                { role: 'user', content: inputForAI },
+            ],
+            model: 'gemma2-9b-it',
+        });
+
+        const responseText = aiResponse.choices[0]?.message?.content || 'I’m sorry, I couldn’t process your message.';
+
+        if (conversation) {
+            conversation.messages.push(
+                { role: 'user', content: userMessage },
+                { role: 'bot', content: responseText }
+            );
+            await conversation.save();
+        } else {
+            conversation = new Conversation({
+                userId: message.author.id,
+                messages: [
+                    { role: 'user', content: userMessage },
+                    { role: 'bot', content: responseText },
+                ],
+            });
+            await conversation.save();
+        }
+
+        await message.reply({
+            content: responseText,
+            allowedMentions: { repliedUser: false },
+        });
+    } catch (error) {
+        console.error('Error processing message:', error);
+        await message.reply('An error occurred while processing your request.');
+    }
+});
 
 client.on("messageCreate", async (message) => {
     if (message.author.bot) return;
