@@ -42,17 +42,20 @@ const FormSchema = new mongoose.Schema({
 });
 const Form = mongoose.model("Form", FormSchema);
 let cooldowns = new Map();
-const messageSchema = new mongoose.Schema({
-  role: { type: String, enum: ['user', 'bot'], required: true },
-  content: { type: String, required: true }
-});
+const conversationSchema = new mongoose.Schema(
+  {
+    messages: [
+      {
+        role: { type: String, enum: ['user', 'bot'], required: true },
+        content: { type: String, required: true },
+        timestamp: { type: Date, default: Date.now },
+      },
+    ],
+  },
+  { timestamps: true }
+);
 
-const conversationSchema = new mongoose.Schema({
-  userId: { type: String, required: true },
-  messages: { type: [messageSchema], required: true }
-});
-
-const Conversation = mongoose.model("Conversation", conversationSchema);
+const Conversation = mongoose.model('Conversation', conversationSchema);
 
 client.setMaxListeners(20);
 // Error Reporter
