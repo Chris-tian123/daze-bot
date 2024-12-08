@@ -204,7 +204,7 @@ client.on('messageCreate', async (message) => {
     return;
   }
   if (!user.hasInteracted) {
-    await message.author.send({content: 'You need to click the "I understand the consequences" button before you can interact with the bot.', ephemeral: true});
+    await message.author.send({ content: 'You need to click the "I understand the consequences" button before you can interact with the bot.', ephemeral: true });
     return;
   }
   const isBlacklisted = await Blacklist.findOne({ userId: message.author.id });
@@ -229,7 +229,7 @@ client.on('messageCreate', async (message) => {
 
     if (!userMessage) return;
 
-    let conversation = await Conversation.findOne({ userId: message.author.id });
+    let conversation = await Conversation.findOne();
 
     let context = '';
     if (conversation && conversation.messages.length > 0) {
@@ -254,7 +254,6 @@ client.on('messageCreate', async (message) => {
     });
 
     const responseText = aiResponse.choices[0]?.message?.content || 'I’m sorry, I couldn’t process your message.';
-
     if (conversation) {
       conversation.messages.push(
         { role: 'user', content: userMessage },
@@ -263,7 +262,6 @@ client.on('messageCreate', async (message) => {
       await conversation.save();
     } else {
       conversation = new Conversation({
-        userId: message.author.id,
         messages: [
           { role: 'user', content: userMessage },
           { role: 'bot', content: responseText },
