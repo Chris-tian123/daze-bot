@@ -780,9 +780,6 @@ if (content.startsWith(".snipe")) {
         }
 
         const createEmbed = (index) => {
-              const isBlacklisted = await Blacklist.findOne({ userId: message.author.id });
-  if (isBlacklisted) return;
-
             const msg = deletedMessages[index];
             return new EmbedBuilder()
                 .setColor("#3498DB")
