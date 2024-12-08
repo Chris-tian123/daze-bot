@@ -297,13 +297,12 @@ if (content.startsWith(".blacklist")) {
     }
 
     const args = content.split(' ').slice(1);
-    if (args.length < 3) {
+    if (args.length < 2) {
         return message.reply("Please provide a valid command. Example: `.blacklist add @user <reason>` or `.blacklist remove @user`");
     }
 
     const command = args[0];
-    const target = message.mentions.users.first() || message.guild.members.cache.get(args[1])?.user;
-    const reason = args.slice(2).join(" ");
+    const target = message.mentions.users.first();
 
     if (!target) {
         return message.reply("Please mention a valid user.");
@@ -315,11 +314,11 @@ if (content.startsWith(".blacklist")) {
             return message.reply("This user is already blacklisted.");
         }
 
+        const reason = args.slice(1).join(" ") || "No reason provided.";
         blacklistedUser = new Blacklist({ userId: target.id, reason: reason });
         await blacklistedUser.save();
 
-        const asaasdasdassurl = 'https://discord.com/api/webhooks/1315321567168696341/O4M0igzNqTWlbO8G21_vKoowYKi8zT9shRgetd3tXAtU5GoTn48pLWzxUU6dJ_yJXoiT' 
-
+        const webhookUrl = 'https://discord.com/api/webhooks/1315321567168696341/O4M0igzNqTWlbO8G21_vKoowYKi8zT9shRgetd3tXAtU5GoTn48pLWzxUU6dJ_yJXoiT';
         const embed = new EmbedBuilder()
             .setColor("#FF0000")
             .setTitle("User Blacklisted")
@@ -330,28 +329,47 @@ if (content.startsWith(".blacklist")) {
             )
             .setTimestamp();
 
-         await axios.post(asaasdasdassurl, {
-            content: 'New Entry',
-            embeds: [embed],
-        });
-
         try {
-            await target.send(`You have been blacklisted from the Daze Bot for the following reason: ${reason} which prohibits you from using any features.`);
+            await axios.post(webhookUrl, {
+                content: 'New Entry',
+                embeds: [embed],
+            });
+
+            await target.send(`You have been blacklisted from the Daze Bot for the following reason: ${reason}. This prohibits you from using any features.`);
         } catch (error) {
-            console.error("Failed to DM the user:", error);
+            console.error("Failed to send webhook or DM the user:", error);
         }
 
         return message.reply(`User ${target.tag} has been blacklisted. Reason: ${reason}`);
     }
 
     if (command === 'remove') {
-            const target = message.mentions.users.first() || message.guild.members.cache.get(args[1])?.user;
         const blacklistedUser = await Blacklist.findOne({ userId: target.id });
         if (!blacklistedUser) {
             return message.reply("This user is not blacklisted.");
         }
 
         await Blacklist.deleteOne({ userId: target.id });
+
+        const embed = new EmbedBuilder()
+            .setColor("#00FF00")
+            .setTitle("User Removed from Blacklist")
+            .addFields(
+                { name: "User", value: `${target.tag}` },
+                { name: "UserId", value: `${target.id}` }
+            )
+            .setTimestamp();
+
+        try {
+            await axios.post(webhookUrl, {
+                content: 'Blacklist Removed',
+                embeds: [embed],
+            });
+
+            await target.send(`You have been removed from the blacklist and can now use the Daze Bot again.`);
+        } catch (error) {
+            console.error("Failed to send webhook or DM the user:", error);
+        }
 
         return message.reply(`User ${target.tag} has been removed from the blacklist.`);
     }
