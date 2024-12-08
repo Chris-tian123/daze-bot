@@ -318,7 +318,7 @@ if (content.startsWith(".blacklist")) {
         blacklistedUser = new Blacklist({ userId: target.id, reason: reason });
         await blacklistedUser.save();
 
-        const blacklistLogChannel = await message.guild.channels.fetch('1315298004915191871'); 
+        const blacklistLogChannel = await message.guild.channels.cache.get('1315298004915191871') 
         if (blacklistLogChannel) {
             const embed = new EmbedBuilder()
                 .setColor("#FF0000")
