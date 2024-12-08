@@ -302,11 +302,11 @@ if (content.startsWith(".blacklist")) {
     }
 
     const command = args[0];
-    const target = message.mentions.users.first() || message.guild.members.cache.get(args[1])?.user;
+    const target = message.mentions.users.first();
     const reason = args.slice(2).join(" ");
 
     if (!target) {
-        return message.reply("Please mention a valid user or provide a valid user ID.");
+        return message.reply("Please mention a valid user.");
     }
 
     if (command === 'add') {
@@ -318,22 +318,24 @@ if (content.startsWith(".blacklist")) {
         blacklistedUser = new Blacklist({ userId: target.id, reason: reason });
         await blacklistedUser.save();
 
-        const blacklistLogChannel = await message.guild.channels.cache.get('1315298004915191871') 
-        if (blacklistLogChannel) {
-            const embed = new EmbedBuilder()
-                .setColor("#FF0000")
-                .setTitle("User Blacklisted")
-                .addFields(
-                    {name: "User", value: `${target.tag}`},
-                    {name: "UserId", value: `${target.id}`},
-                    {name: "Reason", value: `${reason}`}
-                    )
-                .setTimestamp();
-            await blacklistLogChannel.send({ embeds: [embed] });
-        }
+        const webhookClient = new WebhookClient({ url: 'https://discord.com/api/webhooks/1315321567168696341/O4M0igzNqTWlbO8G21_vKoowYKi8zT9shRgetd3tXAtU5GoTn48pLWzxUU6dJ_yJXoiT' }); 
+
+        const embed = new EmbedBuilder()
+            .setColor("#FF0000")
+            .setTitle("User Blacklisted")
+            .addFields(
+                { name: "User", value: `${target.tag}` },
+                { name: "UserId", value: `${target.id}` },
+                { name: "Reason", value: `${reason}` }
+            )
+            .setTimestamp();
+
+        await webhookClient.send({
+            embeds: [embed]
+        });
 
         try {
-            await target.send(`You have been blacklisted from the Daze Bot for the following reason: ${reason} which prohibits you from using any features`);
+            await target.send(`You have been blacklisted from the Daze Bot for the following reason: ${reason} which prohibits you from using any features.`);
         } catch (error) {
             console.error("Failed to DM the user:", error);
         }
@@ -354,8 +356,6 @@ if (content.startsWith(".blacklist")) {
 
     return message.reply("Invalid command. Example: `.blacklist add @user <reason>` or `.blacklist remove @user`");
 }
-
-
     if (content.startsWith("?reminder")) {
           const isBlacklisted = await Blacklist.findOne({ userId: message.author.id });
   if (isBlacklisted) return;
