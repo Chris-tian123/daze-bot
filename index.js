@@ -250,7 +250,7 @@ client.on('messageCreate', async (message) => {
         },
         { role: 'user', content: inputForAI },
       ],
-      model: 'llama3-70b-8192',
+      model: 'gemma-7b-it',
     });
 
     const responseText = aiResponse.choices[0]?.message?.content || 'I’m sorry, I couldn’t process your message.';
@@ -1049,12 +1049,27 @@ ctx.font = '24px "Bebas Neue"';
 ctx.fillStyle = 'rgba(255, 255, 255, 0.8)';
 ctx.fillText(`- 「 ${author.username} 」`, avatarX, avatarY + avatarSize + 24);
 
-let textY = avatarY + 300; // Start lower
+let textY = avatarY + 80; // Adjust text position
 const textX = avatarX + avatarSize + 30;
 const lineHeight = 50;
 const maxWidth = canvas.width - textX - 30;
 
-ctx.font = '42px "Bebas Neue"';
+if (parentMessageContent && parentAuthor) {
+    ctx.font = '20px "Bebas Neue"';
+    ctx.fillStyle = 'rgba(255, 255, 255, 0.6)';
+    ctx.fillText(`${parentAuthor.username}:`, textX, textY);
+    textY += lineHeight;
+
+    const parentLines = wrapText(ctx, parentMessageContent, maxWidth, 3);
+    parentLines.forEach((line) => {
+        ctx.fillText(line, textX, textY);
+        textY += lineHeight;
+    });
+
+    textY += 20; // Add extra spacing after parent message
+}
+
+ctx.font = '36px "Bebas Neue"';
 ctx.fillStyle = '#ffffff';
 const quoteLines = wrapText(ctx, quoteMessage, maxWidth, 5);
 quoteLines.forEach((line) => {
@@ -1066,7 +1081,6 @@ ctx.font = '16px "Bebas Neue"';
 ctx.textAlign = 'right';
 ctx.fillStyle = '#ffffff';
 ctx.fillText("Daze#5473", canvas.width - 20, canvas.height - 20);
-
 
     const attachment = new AttachmentBuilder(canvas.toBuffer('image/png'), { name: 'quote-image.png' });
     await message.reply({ files: [attachment] });
