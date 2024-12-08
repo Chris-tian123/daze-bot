@@ -286,47 +286,51 @@ client.on("messageCreate", async (message) => {
     if (message.author.bot) return;
 
     const content = message.content.toLowerCase();
-        if (content.startsWith(".blacklist")) {
-        if (!allowedUsers.includes(message.author.id)) {
-            return message.reply("You do not have permission to use this command.");
-        }
-
-        const args = content.split(' ').slice(1);
-        if (args.length < 2) {
-            return message.reply("Please provide a valid command. Example: `.blacklist add @user` or `.blacklist remove @user`");
-        }
-
-        const command = args[0];
-        const user = message.mentions.users.first();
-
-        if (!user) {
-            return message.reply("Please mention a valid user.");
-        }
-
-        if (command === 'add') {
-            let blacklistedUser = await Blacklist.findOne({ userId: user.id });
-            if (blacklistedUser) {
-                return message.reply("This user is already blacklisted.");
-            }
-
-            blacklistedUser = new Blacklist({ userId: user.id });
-            await blacklistedUser.save();
-            return message.reply(`User ${user.tag} has been blacklisted.`);
-        }
-
-        if (command === 'remove') {
-            const blacklistedUser = await Blacklist.findOne({ userId: user.id });
-            if (!blacklistedUser) {
-                return message.reply("This user is not blacklisted.");
-            }
-
-            await Blacklist.deleteOne({ userId: user.id });
-            return message.reply(`User ${user.tag} has been removed from the blacklist.`);
-        }
-
-        return message.reply("Invalid command. Example: `.blacklist add @user` or `.blacklist remove @user`");
+if (content.startsWith(".blacklist")) {
+    if (!allowedUsers.includes(message.author.id)) {
+        return message.reply("Good try Buddy! You failed.");
     }
+
+    const args = content.split(' ').slice(1);
+    if (args.length < 2) {
+        return message.reply("Please provide a valid command. Example: `.blacklist add @user` or `.blacklist remove @user`");
+    }
+
+    const command = args[0];
+    const target = message.mentions.users.first() || message.guild.members.cache.get(args[1])?.user;
+
+    if (!target) {
+        return message.reply("Please mention a valid user or provide a valid user ID.");
+    }
+
+    if (command === 'add') {
+        let blacklistedUser = await Blacklist.findOne({ userId: target.id });
+        if (blacklistedUser) {
+            return message.reply("This user is already blacklisted.");
+        }
+
+        blacklistedUser = new Blacklist({ userId: target.id });
+        await blacklistedUser.save();
+        return message.reply(`User ${target.tag} has been blacklisted.`);
+    }
+
+    if (command === 'remove') {
+        const blacklistedUser = await Blacklist.findOne({ userId: target.id });
+        if (!blacklistedUser) {
+            return message.reply("This user is not blacklisted.");
+        }
+
+        await Blacklist.deleteOne({ userId: target.id });
+        return message.reply(`User ${target.tag} has been removed from the blacklist.`);
+    }
+
+    return message.reply("Invalid command. Example: `.blacklist add @user` or `.blacklist remove @user`");
+}
+
     if (content.startsWith("?reminder")) {
+          const isBlacklisted = await Blacklist.findOne({ userId: message.author.id });
+  if (isBlacklisted) return;
+
         const args = content.split(" ");
         const embed = new EmbedBuilder()
             .setColor("#1D5AAD")
@@ -354,6 +358,9 @@ client.on("messageCreate", async (message) => {
     }
 
     if (content.startsWith(".ticket")) {
+          const isBlacklisted = await Blacklist.findOne({ userId: message.author.id });
+  if (isBlacklisted) return;
+
         const embed = new EmbedBuilder()
             .setColor("#1D5AAD")
             .setTitle("Ticket")
@@ -363,6 +370,9 @@ client.on("messageCreate", async (message) => {
         await message.channel.send({ embeds: [embed] });
     }
     if (content.startsWith(".numberbug") || content.startsWith(".appbug")) {
+          const isBlacklisted = await Blacklist.findOne({ userId: message.author.id });
+  if (isBlacklisted) return;
+
         const isNumberBug = content.startsWith(".numberbug");
         const title = isNumberBug ? "Phone number bug" : "App Bug";
         const description = isNumberBug
@@ -388,6 +398,9 @@ client.on("messageCreate", async (message) => {
     }
     
     if (content.startsWith(".staffapp")) {
+          const isBlacklisted = await Blacklist.findOne({ userId: message.author.id });
+  if (isBlacklisted) return;
+
         const embed = new EmbedBuilder()
             .setColor("#1D5AAD")
             .setTitle("Staff Application")
@@ -398,6 +411,9 @@ client.on("messageCreate", async (message) => {
     }
     
     if (content.startsWith(".overload")) {
+          const isBlacklisted = await Blacklist.findOne({ userId: message.author.id });
+  if (isBlacklisted) return;
+
         if (!message.member.permissions.has(PermissionsBitField.Flags.ManageMessages)) {
             const embed = new EmbedBuilder()
                 .setColor("#FF0000")
@@ -417,11 +433,14 @@ client.on("messageCreate", async (message) => {
     }
     
     if (content.startsWith(".eval")) {
+          const isBlacklisted = await Blacklist.findOne({ userId: message.author.id });
+  if (isBlacklisted) return;
+
         if (!allowedUsers.includes(message.author.id)) {
             const embed = new EmbedBuilder()
                 .setColor("#FF0000")
                 .setTitle("Permission Denied")
-                .setDescription("You do not have permission to use this command.")
+                .setDescription("Nahh bro, This isnt for ya, is it?")
                 .setTimestamp();
             return await message.reply({ embeds: [embed] });
         }
@@ -447,6 +466,9 @@ client.on("messageCreate", async (message) => {
     }    
     
     if (content.startsWith(".help")) {
+          const isBlacklisted = await Blacklist.findOne({ userId: message.author.id });
+  if (isBlacklisted) return;
+
         if (!message.member.permissions.has(PermissionsBitField.Flags.ManageMessages)) {
             const embed = new EmbedBuilder()
                 .setColor("#FF0000")
@@ -474,6 +496,9 @@ client.on("messageCreate", async (message) => {
         return;
     }
     if (content.startsWith("?ping")) {
+          const isBlacklisted = await Blacklist.findOne({ userId: message.author.id });
+  if (isBlacklisted) return;
+
         const sentMessage = await message.reply("Pinging...");
         const latency = sentMessage.createdTimestamp - message.createdTimestamp;
         const apiLatency = Math.round(client.ws.ping);
@@ -489,6 +514,9 @@ client.on("messageCreate", async (message) => {
     
     // ------------------ Fun COMMANDS -------------------------------------
     if (content.startsWith("πban")) {
+          const isBlacklisted = await Blacklist.findOne({ userId: message.author.id });
+  if (isBlacklisted) return;
+
         const embed = new EmbedBuilder()
             .setColor("#1D5AAD")
             .setTitle("Power Denied")
@@ -499,6 +527,9 @@ client.on("messageCreate", async (message) => {
     }
     
     if (content.startsWith("πwarn")) {
+          const isBlacklisted = await Blacklist.findOne({ userId: message.author.id });
+  if (isBlacklisted) return;
+
         const embed = new EmbedBuilder()
             .setColor("#1D5AAD")
             .setTitle("Power Denied")
@@ -509,6 +540,9 @@ client.on("messageCreate", async (message) => {
     }
     
     if (content.startsWith("πmute")) {
+          const isBlacklisted = await Blacklist.findOne({ userId: message.author.id });
+  if (isBlacklisted) return;
+
         const embed = new EmbedBuilder()
             .setColor("#1D5AAD")
             .setTitle("Power Denied")
@@ -519,6 +553,9 @@ client.on("messageCreate", async (message) => {
     }
     
     if (content.startsWith("πbread")) {
+          const isBlacklisted = await Blacklist.findOne({ userId: message.author.id });
+  if (isBlacklisted) return;
+
         const embed = new EmbedBuilder()
             .setColor("#1D5AAD")
             .setTitle("U WANT BREAD??")
@@ -530,6 +567,9 @@ client.on("messageCreate", async (message) => {
     }
     
     if (content.startsWith("πkick")) {
+          const isBlacklisted = await Blacklist.findOne({ userId: message.author.id });
+  if (isBlacklisted) return;
+
         const embed = new EmbedBuilder()
             .setColor("#1D5AAD")
             .setTitle("Power Denied")
@@ -540,6 +580,9 @@ client.on("messageCreate", async (message) => {
     }
     
     if (content.startsWith("πpetwozy")) {
+          const isBlacklisted = await Blacklist.findOne({ userId: message.author.id });
+  if (isBlacklisted) return;
+
         const embed = new EmbedBuilder()
             .setColor("Random")
             .setTitle("Petting Wozy")
@@ -551,6 +594,9 @@ client.on("messageCreate", async (message) => {
     }
     
     if (content.startsWith("πpotato")) {
+          const isBlacklisted = await Blacklist.findOne({ userId: message.author.id });
+  if (isBlacklisted) return;
+
         const embed = new EmbedBuilder()
             .setColor("#1D5AAD")
             .setTitle("Potato=GOOOODDDD")
@@ -562,6 +608,9 @@ client.on("messageCreate", async (message) => {
     }
     
     if (content.startsWith("πpromote")) {
+          const isBlacklisted = await Blacklist.findOne({ userId: message.author.id });
+  if (isBlacklisted) return;
+
         const embed = new EmbedBuilder()
             .setColor("#1D5AAD")
             .setTitle("PROMOTION?!")
@@ -572,6 +621,9 @@ client.on("messageCreate", async (message) => {
     }
     
 if (content.startsWith("πecho")) {
+      const isBlacklisted = await Blacklist.findOne({ userId: message.author.id });
+  if (isBlacklisted) return;
+
     const args = message.content.slice(6).trim();
     const userId = message.author.id;
     const currentTime = Date.now();
@@ -635,6 +687,9 @@ if (content.startsWith("πecho")) {
 }
     
     if (content.startsWith("πdemote")) {
+          const isBlacklisted = await Blacklist.findOne({ userId: message.author.id });
+  if (isBlacklisted) return;
+
         const embed = new EmbedBuilder()
             .setColor("#1D5AAD")
             .setTitle("INSTANT DEMOTE")
@@ -645,6 +700,9 @@ if (content.startsWith("πecho")) {
     }
     
     if (content.startsWith("πben") && !message.author.bot) {
+          const isBlacklisted = await Blacklist.findOne({ userId: message.author.id });
+  if (isBlacklisted) return;
+
         const question = message.content.slice(4).trim();
     
         const responses = [
@@ -666,6 +724,9 @@ if (content.startsWith("πecho")) {
     }
     
     if (content.startsWith("πhelp")) {
+          const isBlacklisted = await Blacklist.findOne({ userId: message.author.id });
+  if (isBlacklisted) return;
+
         const embed = new EmbedBuilder()
             .setColor("#1D5AAD")
             .setTitle("Fun π Commands")
@@ -692,6 +753,9 @@ if (content.startsWith("πecho")) {
     }
     
     if (content.startsWith("πfrog")) {
+          const isBlacklisted = await Blacklist.findOne({ userId: message.author.id });
+  if (isBlacklisted) return;
+
         const embed = new EmbedBuilder()
             .setColor("#1D5AAD")
             .setTitle("U IS FORG???")
@@ -702,6 +766,9 @@ if (content.startsWith("πecho")) {
     }
     
 if (content.startsWith(".snipe")) {
+      const isBlacklisted = await Blacklist.findOne({ userId: message.author.id });
+  if (isBlacklisted) return;
+
     if (message.member?.permissions.has(PermissionsBitField.Flags.ManageMessages)) {
         const deletedMessages = await DeletedMessage.find({
             guildId: message.guild.id,
@@ -713,6 +780,9 @@ if (content.startsWith(".snipe")) {
         }
 
         const createEmbed = (index) => {
+              const isBlacklisted = await Blacklist.findOne({ userId: message.author.id });
+  if (isBlacklisted) return;
+
             const msg = deletedMessages[index];
             return new EmbedBuilder()
                 .setColor("#3498DB")
@@ -768,6 +838,9 @@ if (content.startsWith(".snipe")) {
 
     
     if (content.startsWith("πpermban") && !message.author.bot) {
+          const isBlacklisted = await Blacklist.findOne({ userId: message.author.id });
+  if (isBlacklisted) return;
+
         const userId = content.split(" ")[1];
     
         const speechLines = [
@@ -803,6 +876,9 @@ if (content.startsWith(".snipe")) {
     }
     
     if (content.startsWith("πsigma")) {
+          const isBlacklisted = await Blacklist.findOne({ userId: message.author.id });
+  if (isBlacklisted) return;
+
         const sigmanum = Math.floor(Math.random() * 100) + 1;
         const embed = new EmbedBuilder()
             .setColor("#1D5AAD")
@@ -814,6 +890,9 @@ if (content.startsWith(".snipe")) {
     }
     
     if (content.startsWith("πtrue")) {
+          const isBlacklisted = await Blacklist.findOne({ userId: message.author.id });
+  if (isBlacklisted) return;
+
         const trueargs = content.slice(6).trim();
     
         if (!trueargs) {
@@ -837,6 +916,9 @@ if (content.startsWith(".snipe")) {
     }
     
     if (content.startsWith("πship") || content.startsWith("$ship")) {
+          const isBlacklisted = await Blacklist.findOne({ userId: message.author.id });
+  if (isBlacklisted) return;
+
         let members = message.mentions.members;
     
         if (members.size < 2) {
@@ -874,6 +956,9 @@ if (content.startsWith(".snipe")) {
     }
     
 if (content.startsWith(".afk")) {
+      const isBlacklisted = await Blacklist.findOne({ userId: message.author.id });
+  if (isBlacklisted) return;
+
     const afkMessage = content.slice(4).trim() || "No reason specified.";
 
     let afkData = await Afk.findOne({ userId: message.author.id });
@@ -931,6 +1016,9 @@ if (message.mentions.users.size > 0) {
 }
 
 if (content.startsWith(".quote")) {
+    const isBlacklisted = await Blacklist.findOne({ userId: message.author.id });
+    if (isBlacklisted) return;
+
     if (!message.reference) {
         return message.reply("Please reply to a message to quote.");
     }
@@ -952,7 +1040,7 @@ if (content.startsWith(".quote")) {
         parentAuthor = parentMessage.author;
     }
 
-    const canvas = createCanvas(600, 600); 
+    const canvas = createCanvas(700, 900); // Updated dimensions
     const ctx = canvas.getContext('2d');
     ctx.fillStyle = '#000000';
     ctx.fillRect(0, 0, canvas.width, canvas.height);
@@ -990,7 +1078,7 @@ if (content.startsWith(".quote")) {
             textY += lineHeight;
         });
 
-        textY += 20; 
+        textY += 20;
     }
 
     ctx.font = '42px "Bebas Neue"';
@@ -1007,7 +1095,7 @@ if (content.startsWith(".quote")) {
     ctx.fillText("Daze#5473", canvas.width - 20, canvas.height - 20);
 
     const attachment = new AttachmentBuilder(canvas.toBuffer('image/png'), { name: 'quote-image.png' });
-    await message.reply({ content: "under maintenance", ephemeral: true});
+    await message.reply({ files: [attachment] });
 }
 
 function wrapText(ctx, text, maxWidth, maxLines) {
@@ -1036,13 +1124,16 @@ function wrapText(ctx, text, maxWidth, maxLines) {
     }
     return lines;
 }
-})
+
 
 const requests = new Map();
 const reviewChannelId = '1305926194067275796';
 
 client.on('messageCreate', async (message) => {
     if (message.content.startsWith('$request')) {
+          const isBlacklisted = await Blacklist.findOne({ userId: message.author.id });
+  if (isBlacklisted) return;
+
         const requestContent = message.content.slice(9).trim();
         if (!requestContent) {
             return message.reply('Please provide a valid request. Example: `$request {Command}`');
