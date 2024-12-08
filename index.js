@@ -1064,7 +1064,7 @@ if (content.startsWith(".quote")) {
 
     if (parentMessageContent && parentAuthor) {
         ctx.font = '26px "Bebas Neue"';
-        ctx.fillStyle = 'rgba(255, 255, 255, 0.6)';
+        ctx.fillStyle = 'rgba(22, 69, 62, 1)';
         ctx.fillText(`${parentAuthor.username}:`, textX, textY);
         textY += lineHeight;
 
@@ -1085,7 +1085,7 @@ if (content.startsWith(".quote")) {
         textY += lineHeight;
     });
 
-    ctx.font = '16px "Bebas Neue"';
+    ctx.font = '20px "Bebas Neue"';
     ctx.textAlign = 'right';
     ctx.fillStyle = '#ffffff';
     ctx.fillText("Daze#5473", canvas.width - 20, canvas.height - 20);
