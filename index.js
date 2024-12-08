@@ -318,7 +318,7 @@ if (content.startsWith(".blacklist")) {
         blacklistedUser = new Blacklist({ userId: target.id, reason: reason });
         await blacklistedUser.save();
 
-        const webhookClient = new WebhookClient({ url: 'https://discord.com/api/webhooks/1315321567168696341/O4M0igzNqTWlbO8G21_vKoowYKi8zT9shRgetd3tXAtU5GoTn48pLWzxUU6dJ_yJXoiT' }); 
+        const asaasdasdassurl = 'https://discord.com/api/webhooks/1315321567168696341/O4M0igzNqTWlbO8G21_vKoowYKi8zT9shRgetd3tXAtU5GoTn48pLWzxUU6dJ_yJXoiT' 
 
         const embed = new EmbedBuilder()
             .setColor("#FF0000")
@@ -330,8 +330,9 @@ if (content.startsWith(".blacklist")) {
             )
             .setTimestamp();
 
-        await webhookClient.send({
-            embeds: [embed]
+         await axios.post(asaasdasdassurl, {
+            content: 'New Entry',
+            embeds: [embed],
         });
 
         try {
@@ -344,6 +345,7 @@ if (content.startsWith(".blacklist")) {
     }
 
     if (command === 'remove') {
+            const target = message.mentions.users.first() || message.guild.members.cache.get(args[1])?.user;
         const blacklistedUser = await Blacklist.findOne({ userId: target.id });
         if (!blacklistedUser) {
             return message.reply("This user is not blacklisted.");
