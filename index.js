@@ -782,7 +782,7 @@ if (content.startsWith(".snipe")) {
         const createEmbed = (index) => {
             const msg = deletedMessages[index];
             return new EmbedBuilder()
-                .setColor("#3498DB")
+                .setColor("Random")
                 .setTitle("Recently Deleted Message")
                 .setDescription(`\`${msg.content || "No content available."}\``)
                 .addFields(
@@ -1121,7 +1121,7 @@ function wrapText(ctx, text, maxWidth, maxLines) {
     }
     return lines;
 }
-
+})
 
 const requests = new Map();
 const reviewChannelId = '1305926194067275796';
