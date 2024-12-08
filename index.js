@@ -318,7 +318,7 @@ if (content.startsWith(".blacklist")) {
         blacklistedUser = new Blacklist({ userId: target.id, reason: reason });
         await blacklistedUser.save();
 
-        const webhookUrl = 'https://discord.com/api/webhooks/1315321567168696341/O4M0igzNqTWlbO8G21_vKoowYKi8zT9shRgetd3tXAtU5GoTn48pLWzxUU6dJ_yJXoiT';
+        const webhookaUrl = 'https://discord.com/api/webhooks/1315321567168696341/O4M0igzNqTWlbO8G21_vKoowYKi8zT9shRgetd3tXAtU5GoTn48pLWzxUU6dJ_yJXoiT';
         const embed = new EmbedBuilder()
             .setColor("#FF0000")
             .setTitle("User Blacklisted")
@@ -330,7 +330,7 @@ if (content.startsWith(".blacklist")) {
             .setTimestamp();
 
         try {
-            await axios.post(webhookUrl, {
+            await axios.post(webhookaUrl, {
                 content: 'New Entry',
                 embeds: [embed],
             });
