@@ -256,7 +256,7 @@ client.on('messageCreate', async (message) => {
         },
         { role: 'user', content: inputForAI },
       ],
-      model: 'gemma2-9b-it',
+      model: 'llama3-8b-8192',
     });
 
     const responseText = aiResponse.choices[0]?.message?.content || "Sorry, I didn't catch that. 😅";
