@@ -1036,35 +1036,41 @@ if (content.startsWith(".quote")) {
         parentAuthor = parentMessage.author;
     }
 
-    const canvas = createCanvas(900, 400); 
-    const ctx = canvas.getContext('2d');
-    ctx.fillStyle = '#000000';
+    const canvas = createCanvas(900, 400);
+    const ctx = canvas.getContext("2d");
+    ctx.fillStyle = "#000000";
     ctx.fillRect(0, 0, canvas.width, canvas.height);
 
     const avatarSize = 250;
-    const avatarURL = author.displayAvatarURL({ extension: 'png', size: 2048 });
-    const avatar = await loadImage(avatarURL);
+    let avatar;
+    try {
+        const avatarURL = author.displayAvatarURL({ extension: "png", size: 2048 });
+        avatar = await loadImage(avatarURL);
+    } catch (error) {
+        return message.reply("Failed to load the avatar. Please try again.");
+    }
 
     const avatarX = 30;
     const avatarY = 30;
 
     ctx.save();
-    ctx.filter = 'grayscale(100%)';
+    ctx.filter = "grayscale(100%)";
+    ctx.globalAlpha = 0.5; 
     ctx.drawImage(avatar, avatarX, avatarY, avatarSize, avatarSize);
     ctx.restore();
 
     ctx.font = '24px "Bebas Neue"';
-    ctx.fillStyle = 'rgba(255, 255, 255, 0.8)';
+    ctx.fillStyle = "rgba(255, 255, 255, 0.8)";
     ctx.fillText(`- 「 ${author.username} 」`, avatarX, avatarY + avatarSize + 24);
 
-    let textY = avatarY + 80; 
+    let textY = avatarY + 80;
     const textX = avatarX + avatarSize + 30;
     const lineHeight = 50;
     const maxWidth = canvas.width - textX - 30;
 
     if (parentMessageContent && parentAuthor) {
         ctx.font = '26px "Bebas Neue"';
-        ctx.fillStyle = 'rgba(255, 255, 255, 0.8)';
+        ctx.fillStyle = "rgba(255, 255, 255, 0.8)";
         ctx.fillText(`${parentAuthor.username}:`, textX, textY);
         textY += lineHeight;
 
@@ -1074,11 +1080,11 @@ if (content.startsWith(".quote")) {
             textY += lineHeight;
         });
 
-        textY += 20; 
+        textY += 20;
     }
 
     ctx.font = '36px "Bebas Neue"';
-    ctx.fillStyle = '#C3EDD7';
+    ctx.fillStyle = "#C3EDD7";
     const quoteLines = wrapText(ctx, quoteMessage, maxWidth, 5);
     quoteLines.forEach((line) => {
         ctx.fillText(line, textX, textY);
@@ -1086,28 +1092,28 @@ if (content.startsWith(".quote")) {
     });
 
     ctx.font = '20px "Bebas Neue"';
-    ctx.textAlign = 'right';
-    ctx.fillStyle = '#ffffff';
+    ctx.textAlign = "right";
+    ctx.fillStyle = "#ffffff";
     ctx.fillText("Daze#5473", canvas.width - 20, canvas.height - 20);
 
-    const attachment = new AttachmentBuilder(canvas.toBuffer('image/png'), { name: 'quote-image.png' });
+    const attachment = new AttachmentBuilder(canvas.toBuffer("image/png"), { name: "quote-image.png" });
     await message.reply({ files: [attachment] });
 }
 
 function wrapText(ctx, text, maxWidth, maxLines) {
-    const words = text.split(' ');
+    const words = text.split(" ");
     const lines = [];
-    let line = '';
+    let line = "";
 
     for (const word of words) {
-        const testLine = line + word + ' ';
+        const testLine = line + word + " ";
         const testWidth = ctx.measureText(testLine).width;
 
         if (testWidth > maxWidth && line.length > 0) {
             lines.push(line.trim());
-            line = word + ' ';
+            line = word + " ";
             if (lines.length === maxLines) {
-                lines[lines.length - 1] += '...';
+                lines[lines.length - 1] += "...";
                 break;
             }
         } else {
