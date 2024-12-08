@@ -1071,7 +1071,7 @@ if (content.startsWith(".quote")) {
     if (parentMessageContent && parentAuthor) {
         ctx.font = '26px "Bebas Neue"';
         ctx.fillStyle = "rgba(255, 255, 255, 0.8)";
-        ctx.fillText(`${parentAuthor.username}:`, textX, textY);
+        ctx.fillText(`Replying to: ➡️ ${parentAuthor.username}:`, textX, textY);
         textY += lineHeight;
 
         const parentLines = wrapText(ctx, parentMessageContent, maxWidth, 3);
