@@ -1028,30 +1028,39 @@ if (content.startsWith(".quote")) {
         return message.reply("The referenced message is empty.");
     }
 
-    const canvas = createCanvas(900, 400); // Match dimensions of uploaded image
+    const canvas = createCanvas(900, 400); // Updated canvas size
     const ctx = canvas.getContext('2d');
     ctx.fillStyle = '#000000';
     ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-    const avatarSize = 150;
+    const avatarSize = 250;
     const avatarURL = author.displayAvatarURL({ extension: 'png', size: 2048 });
     const avatar = await loadImage(avatarURL);
 
     const avatarX = 30;
-    const avatarY = canvas.height / 2 - avatarSize / 2;
+    const avatarY = 30;
 
     ctx.save();
-    ctx.beginPath();
-    ctx.arc(avatarX + avatarSize / 2, avatarY + avatarSize / 2, avatarSize / 2, 0, Math.PI * 2);
-    ctx.closePath();
-    ctx.clip();
+    ctx.filter = 'grayscale(100%)';
     ctx.drawImage(avatar, avatarX, avatarY, avatarSize, avatarSize);
     ctx.restore();
 
-    ctx.font = '28px "Bebas Neue"';
+    ctx.font = '24px "Bebas Neue"';
+    ctx.fillStyle = 'rgba(255, 255, 255, 0.8)';
+    ctx.fillText(`- 「 ${author.username} 」`, avatarX, avatarY + avatarSize + 24);
+
+    let textY = avatarY;
+    const textX = avatarX + avatarSize + 30;
+    const lineHeight = 50;
+    const maxWidth = canvas.width - textX - 30;
+
+    ctx.font = '42px "Bebas Neue"';
     ctx.fillStyle = '#ffffff';
-    ctx.textAlign = 'left';
-    ctx.fillText(`- 「 ${author.username} 」`, avatarX + avatarSize + 20, canvas.height / 2 + 10);
+    const quoteLines = wrapText(ctx, quoteMessage, maxWidth, 5);
+    quoteLines.forEach((line) => {
+        ctx.fillText(line, textX, textY);
+        textY += lineHeight;
+    });
 
     ctx.font = '16px "Bebas Neue"';
     ctx.textAlign = 'right';
