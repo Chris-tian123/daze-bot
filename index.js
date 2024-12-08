@@ -1028,63 +1028,73 @@ if (content.startsWith(".quote")) {
         return message.reply("The referenced message is empty.");
     }
 
-const canvas = createCanvas(900, 400); 
-const ctx = canvas.getContext('2d');
-ctx.fillStyle = '#000000';
-ctx.fillRect(0, 0, canvas.width, canvas.height);
+    // Fetch parent message if it exists
+    let parentMessageContent = null;
+    let parentAuthor = null;
+    if (referencedMessage.reference) {
+        const parentMessage = await message.channel.messages.fetch(referencedMessage.reference.messageId);
+        parentMessageContent = parentMessage.content.trim();
+        parentAuthor = parentMessage.author;
+    }
 
-const avatarSize = 250;
-const avatarURL = author.displayAvatarURL({ extension: 'png', size: 2048 });
-const avatar = await loadImage(avatarURL);
+    const canvas = createCanvas(900, 400); 
+    const ctx = canvas.getContext('2d');
+    ctx.fillStyle = '#000000';
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-const avatarX = 30;
-const avatarY = 30;
+    const avatarSize = 250;
+    const avatarURL = author.displayAvatarURL({ extension: 'png', size: 2048 });
+    const avatar = await loadImage(avatarURL);
 
-ctx.save();
-ctx.filter = 'grayscale(100%)';
-ctx.drawImage(avatar, avatarX, avatarY, avatarSize, avatarSize);
-ctx.restore();
+    const avatarX = 30;
+    const avatarY = 30;
 
-ctx.font = '24px "Bebas Neue"';
-ctx.fillStyle = 'rgba(255, 255, 255, 0.8)';
-ctx.fillText(`- 「 ${author.username} 」`, avatarX, avatarY + avatarSize + 24);
+    ctx.save();
+    ctx.filter = 'grayscale(100%)';
+    ctx.drawImage(avatar, avatarX, avatarY, avatarSize, avatarSize);
+    ctx.restore();
 
-let textY = avatarY + 80; // Adjust text position
-const textX = avatarX + avatarSize + 30;
-const lineHeight = 50;
-const maxWidth = canvas.width - textX - 30;
+    ctx.font = '24px "Bebas Neue"';
+    ctx.fillStyle = 'rgba(255, 255, 255, 0.8)';
+    ctx.fillText(`- 「 ${author.username} 」`, avatarX, avatarY + avatarSize + 24);
 
-if (parentMessageContent && parentAuthor) {
-    ctx.font = '20px "Bebas Neue"';
-    ctx.fillStyle = 'rgba(255, 255, 255, 0.6)';
-    ctx.fillText(`${parentAuthor.username}:`, textX, textY);
-    textY += lineHeight;
+    let textY = avatarY + 80; 
+    const textX = avatarX + avatarSize + 30;
+    const lineHeight = 50;
+    const maxWidth = canvas.width - textX - 30;
 
-    const parentLines = wrapText(ctx, parentMessageContent, maxWidth, 3);
-    parentLines.forEach((line) => {
+    if (parentMessageContent && parentAuthor) {
+        ctx.font = '20px "Bebas Neue"';
+        ctx.fillStyle = 'rgba(255, 255, 255, 0.6)';
+        ctx.fillText(`${parentAuthor.username}:`, textX, textY);
+        textY += lineHeight;
+
+        const parentLines = wrapText(ctx, parentMessageContent, maxWidth, 3);
+        parentLines.forEach((line) => {
+            ctx.fillText(line, textX, textY);
+            textY += lineHeight;
+        });
+
+        textY += 20; /
+    }
+
+    ctx.font = '36px "Bebas Neue"';
+    ctx.fillStyle = '#ffffff';
+    const quoteLines = wrapText(ctx, quoteMessage, maxWidth, 5);
+    quoteLines.forEach((line) => {
         ctx.fillText(line, textX, textY);
         textY += lineHeight;
     });
 
-    textY += 20; // Add extra spacing after parent message
-}
-
-ctx.font = '36px "Bebas Neue"';
-ctx.fillStyle = '#ffffff';
-const quoteLines = wrapText(ctx, quoteMessage, maxWidth, 5);
-quoteLines.forEach((line) => {
-    ctx.fillText(line, textX, textY);
-    textY += lineHeight;
-});
-
-ctx.font = '16px "Bebas Neue"';
-ctx.textAlign = 'right';
-ctx.fillStyle = '#ffffff';
-ctx.fillText("Daze#5473", canvas.width - 20, canvas.height - 20);
+    ctx.font = '16px "Bebas Neue"';
+    ctx.textAlign = 'right';
+    ctx.fillStyle = '#ffffff';
+    ctx.fillText("Daze#5473", canvas.width - 20, canvas.height - 20);
 
     const attachment = new AttachmentBuilder(canvas.toBuffer('image/png'), { name: 'quote-image.png' });
     await message.reply({ files: [attachment] });
 }
+
 function wrapText(ctx, text, maxWidth, maxLines) {
     const words = text.split(' ');
     const lines = [];
