@@ -165,7 +165,8 @@ const userSchema = new mongoose.Schema({
 const User = mongoose.model('User', userSchema);
 
 const blacklistSchema = new mongoose.Schema({
-  userId: { type: String, required: true, unique: true }
+  userId: { type: String, required: true, unique: true },
+  reason: { type: String, required: true }
 });
 
 const Blacklist = mongoose.model("Blacklist", blacklistSchema);
@@ -296,12 +297,13 @@ if (content.startsWith(".blacklist")) {
     }
 
     const args = content.split(' ').slice(1);
-    if (args.length < 2) {
-        return message.reply("Please provide a valid command. Example: `.blacklist add @user` or `.blacklist remove @user`");
+    if (args.length < 3) {
+        return message.reply("Please provide a valid command. Example: `.blacklist add @user <reason>` or `.blacklist remove @user`");
     }
 
     const command = args[0];
     const target = message.mentions.users.first() || message.guild.members.cache.get(args[1])?.user;
+    const reason = args.slice(2).join(" ");
 
     if (!target) {
         return message.reply("Please mention a valid user or provide a valid user ID.");
@@ -313,9 +315,30 @@ if (content.startsWith(".blacklist")) {
             return message.reply("This user is already blacklisted.");
         }
 
-        blacklistedUser = new Blacklist({ userId: target.id });
+        blacklistedUser = new Blacklist({ userId: target.id, reason: reason });
         await blacklistedUser.save();
-        return message.reply(`User ${target.tag} has been blacklisted.`);
+
+        const blacklistLogChannel = await message.guild.channels.fetch('1315298004915191871'); 
+        if (blacklistLogChannel) {
+            const embed = new EmbedBuilder()
+                .setColor("#FF0000")
+                .setTitle("User Blacklisted")
+                .addFields(
+                    {name: "User", value: `${target.tag}`},
+                    {name: "UserId", value: `${target.id}`},
+                    {name: "Reason", value: `${reason}`}
+                    )
+                .setTimestamp();
+            await blacklistLogChannel.send({ embeds: [embed] });
+        }
+
+        try {
+            await target.send(`You have been blacklisted from the Daze Bot for the following reason: ${reason} which prohibits you from using any features`);
+        } catch (error) {
+            console.error("Failed to DM the user:", error);
+        }
+
+        return message.reply(`User ${target.tag} has been blacklisted. Reason: ${reason}`);
     }
 
     if (command === 'remove') {
@@ -325,11 +348,13 @@ if (content.startsWith(".blacklist")) {
         }
 
         await Blacklist.deleteOne({ userId: target.id });
+
         return message.reply(`User ${target.tag} has been removed from the blacklist.`);
     }
 
-    return message.reply("Invalid command. Example: `.blacklist add @user` or `.blacklist remove @user`");
+    return message.reply("Invalid command. Example: `.blacklist add @user <reason>` or `.blacklist remove @user`");
 }
+
 
     if (content.startsWith("?reminder")) {
           const isBlacklisted = await Blacklist.findOne({ userId: message.author.id });
