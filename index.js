@@ -1075,7 +1075,7 @@ if (content.startsWith(".quote")) {
             textY += lineHeight;
         });
 
-        textY += 20; /
+        textY += 20; 
     }
 
     ctx.font = '36px "Bebas Neue"';
@@ -1216,7 +1216,6 @@ client.on('interactionCreate', async (interaction) => {
         const user = await User.findOne({ userId: interaction.user.id });
         if (!user) return;
 
-        // Mark the user as interacted
         user.hasInteracted = true;
         await user.save();
 
