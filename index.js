@@ -302,7 +302,7 @@ if (content.startsWith(".blacklist")) {
     }
 
     const command = args[0];
-    const target = message.mentions.users.first();
+    const target = message.mentions.users.first() || message.guild.members.cache.get(args[1])?.user;
     const reason = args.slice(2).join(" ");
 
     if (!target) {
