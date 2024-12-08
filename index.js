@@ -1028,7 +1028,6 @@ if (content.startsWith(".quote")) {
         return message.reply("The referenced message is empty.");
     }
 
-    // Fetch parent message if it exists
     let parentMessageContent = null;
     let parentAuthor = null;
     if (referencedMessage.reference) {
@@ -1064,7 +1063,7 @@ if (content.startsWith(".quote")) {
     const maxWidth = canvas.width - textX - 30;
 
     if (parentMessageContent && parentAuthor) {
-        ctx.font = '20px "Bebas Neue"';
+        ctx.font = '26px "Bebas Neue"';
         ctx.fillStyle = 'rgba(255, 255, 255, 0.6)';
         ctx.fillText(`${parentAuthor.username}:`, textX, textY);
         textY += lineHeight;
