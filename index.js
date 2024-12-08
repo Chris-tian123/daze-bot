@@ -1064,7 +1064,7 @@ if (content.startsWith(".quote")) {
 
     if (parentMessageContent && parentAuthor) {
         ctx.font = '26px "Bebas Neue"';
-        ctx.fillStyle = 'rgba(22, 69, 62, 1)';
+        ctx.fillStyle = 'rgba(255, 255, 255, 0.8)';
         ctx.fillText(`${parentAuthor.username}:`, textX, textY);
         textY += lineHeight;
 
@@ -1078,7 +1078,7 @@ if (content.startsWith(".quote")) {
     }
 
     ctx.font = '36px "Bebas Neue"';
-    ctx.fillStyle = '#ffffff';
+    ctx.fillStyle = '#C3EDD7';
     const quoteLines = wrapText(ctx, quoteMessage, maxWidth, 5);
     quoteLines.forEach((line) => {
         ctx.fillText(line, textX, textY);
