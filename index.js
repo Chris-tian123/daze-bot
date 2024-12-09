@@ -298,7 +298,6 @@ client.on("messageCreate", async (message) => {
     if (message.content.startsWith('!lyrics')) {
     await sendRandomLyric(message.channel);
   }
-    
 if (content.startsWith(".blacklist")) {
     if (!allowedUsers.includes(message.author.id)) {
         return message.reply("Good try Buddy! You failed.");
@@ -663,9 +662,6 @@ if (content.startsWith(".blacklist")) {
     
         await message.reply({ embeds: [embed] });
     }
-      if (content.startsWith('!lyrics')) {
-    await sendRandomLyric(message.channel);
-  }
     if (content.startsWith("πpromote")) {
           const isBlacklisted = await Blacklist.findOne({ userId: message.author.id });
   if (isBlacklisted) return;
