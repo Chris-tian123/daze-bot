@@ -1285,13 +1285,13 @@ client.on('interactionCreate', async (interaction) => {
         });
     }
 });
- const sendRandomLyric = async (channel) => {
+const sendRandomLyric = async (channel) => {
   if (isActive) {
-    return; // Do not send if there's an active game
+    return;
   }
 
   if (usedSongs.length === songs.length) {
-    usedSongs = []; // Reset if all songs are used
+    usedSongs = [];
   }
 
   let randomSong = songs[Math.floor(Math.random() * songs.length)];
@@ -1307,9 +1307,12 @@ client.on('interactionCreate', async (interaction) => {
 
     if (lyrics) {
       const lyricLines = lyrics.split('\n').filter(line => line.trim() !== '');
-      const selectedLyrics = [];
 
-      // Select 3 random lyrics from the available lyric lines
+      if (lyricLines.length < 3) {
+        return sendRandomLyric(channel);
+      }
+
+      const selectedLyrics = [];
       while (selectedLyrics.length < 3) {
         const randomLine = lyricLines[Math.floor(Math.random() * lyricLines.length)];
         if (!selectedLyrics.includes(randomLine)) {
@@ -1320,6 +1323,7 @@ client.on('interactionCreate', async (interaction) => {
       const embed = new EmbedBuilder()
         .setColor('#0099ff')
         .setTitle('Guess the Song Title!')
+        .setDescription(`Artist: **${artist}**`)
         .setFooter({ text: 'You have 20 seconds to guess!' });
 
       selectedLyrics.forEach((lyric, index) => {
@@ -1338,7 +1342,6 @@ client.on('interactionCreate', async (interaction) => {
       const collector = channel.createMessageCollector({ filter, time: 20000 });
 
       collector.on('collect', (response) => {
-        // Compare song titles in a case-insensitive manner and trim spaces
         if (response.content.trim().toLowerCase() === songName.toLowerCase()) {
           const userId = response.author.id;
 
@@ -1347,7 +1350,9 @@ client.on('interactionCreate', async (interaction) => {
           }
           userPoints[userId]++;
 
-          response.reply(`Correct! You've earned a point! It was ${songName} . Your current points: ${userPoints[userId]}`);
+          response.reply(
+            `Correct! You've earned a point! The song was **${songName}**. Your current points: **${userPoints[userId]}**`
+          );
           collector.stop();
         }
       });
@@ -1355,14 +1360,14 @@ client.on('interactionCreate', async (interaction) => {
       collector.on('end', collected => {
         isActive = false;
         if (collected.size === 0) {
-          channel.send(`Time is up! No one guessed the song title correctly. The correct answer was: **${songName}**`);
+          channel.send(`Time's up! No one guessed the song title. The correct answer was: **${songName}**`);
         }
       });
     } else {
-      console.log("Lyrics not found for the song.");
+      return sendRandomLyric(channel);
     }
   } catch (error) {
-    console.error('Error fetching lyrics:', error);
+    channel.send('An error occurred while fetching lyrics. Please try again later.');
   }
 };
 
