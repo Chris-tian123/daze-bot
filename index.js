@@ -295,7 +295,7 @@ client.on("messageCreate", async (message) => {
 
     const content = message.content.toLowerCase();
       
-    if (content.startsWith('!lyrics')) {
+    if (content.startsWith('.song-game')) {
     await sendRandomLyric(message.channel);
   }
 if (content.startsWith(".blacklist")) {
