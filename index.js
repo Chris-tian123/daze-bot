@@ -50,7 +50,7 @@ const FormSchema = new mongoose.Schema({
   answers: [String],
 });
 const Form = mongoose.model("Form", FormSchema);
-let cooldowns = new Set();
+
 const messageSchema = new mongoose.Schema({
   role: { type: String, enum: ['user', 'bot'], required: true },
   content: { type: String, required: true }
@@ -1286,6 +1286,8 @@ client.on('interactionCreate', async (interaction) => {
     }
 });
 const activeGames = new Map();
+const cooldowns = new Set();
+
 const sendRandomLyric = async (channel, author) => {
   if (cooldowns.has(author.id)) {
     return author.send('You are currently on cooldown. Please wait before playing again.');
@@ -1305,6 +1307,8 @@ const sendRandomLyric = async (channel, author) => {
   }
 
   usedSongs.push(randomSong.songName);
+
+  try {
     const { songName, artist } = randomSong;
     const lyrics = await lyricsFinder(artist, songName);
 
@@ -1385,7 +1389,11 @@ const sendRandomLyric = async (channel, author) => {
 
     cooldowns.add(author.id);
     setTimeout(() => cooldowns.delete(author.id), 60000);
+  } catch (error) {
+    channel.send(
+      `An error occurred while fetching lyrics for **${randomSong.songName}** by **${randomSong.artist}**. Trying another song...`
+    );
     activeGames.delete(channel.id);
+  }
 };
-
 client.login('MTA3MDgyMzg2MTM3OTE0OTg3NA.GDkT7U.Bt7sZtsijnLNpjSaeRkdu-PpbTdORf9IlFo2mw')
