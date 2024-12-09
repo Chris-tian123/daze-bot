@@ -355,7 +355,7 @@ if (content.startsWith(".blacklist")) {
             .setTimestamp();
 
         try {
-            await axios.post(webhookUrl, {
+            await axios.post(webhookaUrl, {
                 content: 'Blacklist Removed',
                 embeds: [embed],
             });
