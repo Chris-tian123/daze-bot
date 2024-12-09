@@ -1388,7 +1388,7 @@ const sendRandomLyric = async (channel, author) => {
     });
 
     cooldowns.add(author.id);
-    setTimeout(() => cooldowns.delete(author.id), 60000);
+    setTimeout(() => cooldowns.delete(author.id), 3000);
   } catch (error) {
     channel.send(
       `An error occurred while fetching lyrics for **${randomSong.songName}** by **${randomSong.artist}**. Trying another song...`
