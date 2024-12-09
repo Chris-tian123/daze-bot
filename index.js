@@ -649,7 +649,9 @@ if (content.startsWith(".blacklist")) {
     
         await message.reply({ embeds: [embed] });
     }
-    
+      if (content.startsWith('!lyrics')) {
+    await sendRandomLyric(message.channel);
+  }
     if (content.startsWith("πpromote")) {
           const isBlacklisted = await Blacklist.findOne({ userId: message.author.id });
   if (isBlacklisted) return;
@@ -1273,5 +1275,85 @@ client.on('interactionCreate', async (interaction) => {
         });
     }
 });
+const sendRandomLyric = async (channel) => {
+  if (isActive) {
+    return; // Do not send if there's an active game
+  }
+
+  if (usedSongs.length === songs.length) {
+    usedSongs = []; // Reset if all songs are used
+  }
+
+  let randomSong = songs[Math.floor(Math.random() * songs.length)];
+  while (usedSongs.includes(randomSong.songName)) {
+    randomSong = songs[Math.floor(Math.random() * songs.length)];
+  }
+
+  usedSongs.push(randomSong.songName);
+
+  try {
+    const { songName, artist } = randomSong;
+    const lyrics = await lyricsFinder(artist, songName);
+
+    if (lyrics) {
+      const lyricLines = lyrics.split('\n').filter(line => line.trim() !== '');
+      const selectedLyrics = [];
+
+      // Select 3 random lyrics from the available lyric lines
+      while (selectedLyrics.length < 3) {
+        const randomLine = lyricLines[Math.floor(Math.random() * lyricLines.length)];
+        if (!selectedLyrics.includes(randomLine)) {
+          selectedLyrics.push(randomLine);
+        }
+      }
+
+      const embed = new EmbedBuilder()
+        .setColor('#0099ff')
+        .setTitle('Guess the Song Title!')
+        .setFooter({ text: 'You have 20 seconds to guess!' });
+
+      selectedLyrics.forEach((lyric, index) => {
+        embed.addFields({
+          name: `Lyric ${index + 1}`,
+          value: `"${lyric}"`,
+          inline: false
+        });
+      });
+
+      isActive = true;
+      const msg = await channel.send({ embeds: [embed] });
+
+      const filter = response => response.author.id !== client.user.id;
+
+      const collector = channel.createMessageCollector({ filter, time: 20000 });
+
+      collector.on('collect', (response) => {
+        // Compare song titles in a case-insensitive manner and trim spaces
+        if (response.content.trim().toLowerCase() === songName.toLowerCase()) {
+          const userId = response.author.id;
+
+          if (!userPoints[userId]) {
+            userPoints[userId] = 0;
+          }
+          userPoints[userId]++;
+
+          response.reply(`Correct! You've earned a point! Your current points: ${userPoints[userId]}`);
+          collector.stop();
+        }
+      });
+
+      collector.on('end', collected => {
+        isActive = false;
+        if (collected.size === 0) {
+          channel.send(`Time is up! No one guessed the song title correctly. The correct answer was: **${songName}**`);
+        }
+      });
+    } else {
+      console.log("Lyrics not found for the song.");
+    }
+  } catch (error) {
+    console.error('Error fetching lyrics:', error);
+  }
+};
 
 client.login('MTA3MDgyMzg2MTM3OTE0OTg3NA.GDkT7U.Bt7sZtsijnLNpjSaeRkdu-PpbTdORf9IlFo2mw')
