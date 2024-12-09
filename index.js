@@ -1285,9 +1285,20 @@ client.on('interactionCreate', async (interaction) => {
         });
     }
 });
-const sendRandomLyric = async (channel) => {
-  if (isActive) {
-    return;
+const cooldowns = new Set();
+const activeGames = new Map();
+
+const sendRandomLyric = async (channel, message) => {
+  if (cooldowns.has(message.author.id)) {
+    return message.author.send({
+      content: 'You are currently on cooldown. Please wait before playing again.',
+    });
+  }
+
+  if (activeGames.has(message.author.id)) {
+    return message.author.send({
+      content: 'You already have an active game. Please finish it before starting a new one.',
+    });
   }
 
   if (usedSongs.length === songs.length) {
@@ -1309,7 +1320,7 @@ const sendRandomLyric = async (channel) => {
       const lyricLines = lyrics.split('\n').filter(line => line.trim() !== '');
 
       if (lyricLines.length < 3) {
-        return sendRandomLyric(channel);
+        return sendRandomLyric(channel, message);
       }
 
       const selectedLyrics = [];
@@ -1334,10 +1345,10 @@ const sendRandomLyric = async (channel) => {
         });
       });
 
-      isActive = true;
+      activeGames.set(message.author.id, { songName, channel });
       const msg = await channel.send({ embeds: [embed] });
 
-      const filter = response => response.author.id !== client.user.id;
+      const filter = response => response.author.id === message.author.id;
 
       const collector = channel.createMessageCollector({ filter, time: 20000 });
 
@@ -1358,17 +1369,23 @@ const sendRandomLyric = async (channel) => {
       });
 
       collector.on('end', collected => {
-        isActive = false;
+        activeGames.delete(message.author.id);
+
         if (collected.size === 0) {
-          channel.send(`Time's up! No one guessed the song title. The correct answer was: **${songName}**`);
+          channel.send(`Time's up! The correct answer was: **${songName}**`);
         }
       });
+
+      cooldowns.add(message.author.id);
+      setTimeout(() => cooldowns.delete(message.author.id), 60000);
     } else {
-      return sendRandomLyric(channel);
+      return sendRandomLyric(channel, message);
     }
   } catch (error) {
     channel.send('An error occurred while fetching lyrics. Please try again later.');
+    activeGames.delete(message.author.id);
   }
 };
+
 
 client.login('MTA3MDgyMzg2MTM3OTE0OTg3NA.GDkT7U.Bt7sZtsijnLNpjSaeRkdu-PpbTdORf9IlFo2mw')
