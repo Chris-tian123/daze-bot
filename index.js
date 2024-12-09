@@ -296,7 +296,7 @@ client.on("messageCreate", async (message) => {
     const content = message.content.toLowerCase();
       
     if (content.startsWith('.song-game')) {
-    await sendRandomLyric(message.channel);
+    await sendRandomLyric(message.channel, message.author);
   }
 if (content.startsWith(".blacklist")) {
     if (!allowedUsers.includes(message.author.id)) {
@@ -1286,18 +1286,13 @@ client.on('interactionCreate', async (interaction) => {
     }
 });
 const activeGames = new Map();
-
-const sendRandomLyric = async (channel, message) => {
-  if (cooldowns.has(message.author.id)) {
-    return message.author.send({
-      content: 'You are currently on cooldown. Please wait before playing again.',
-    });
+const sendRandomLyric = async (channel, author) => {
+  if (cooldowns.has(author.id)) {
+    return author.send('You are currently on cooldown. Please wait before playing again.');
   }
 
-  if (activeGames.has(message.author.id)) {
-    return message.author.send({
-      content: 'You already have an active game. Please finish it before starting a new one.',
-    });
+  if (activeGames.has(channel.id)) {
+    return channel.send('A game is already active in this channel. Please wait for it to finish.');
   }
 
   if (usedSongs.length === songs.length) {
@@ -1319,7 +1314,7 @@ const sendRandomLyric = async (channel, message) => {
       const lyricLines = lyrics.split('\n').filter(line => line.trim() !== '');
 
       if (lyricLines.length < 3) {
-        return sendRandomLyric(channel, message);
+        return sendRandomLyric(channel, author);
       }
 
       const selectedLyrics = [];
@@ -1344,45 +1339,53 @@ const sendRandomLyric = async (channel, message) => {
         });
       });
 
-      activeGames.set(message.author.id, { songName, channel });
+      activeGames.set(channel.id, { songName, artist });
+
       const msg = await channel.send({ embeds: [embed] });
 
-      const filter = response => response.author.id === message.author.id;
+      const filter = response => response.author.id !== client.user.id;
 
       const collector = channel.createMessageCollector({ filter, time: 20000 });
 
       collector.on('collect', (response) => {
-        if (response.content.trim().toLowerCase() === songName.toLowerCase()) {
-          const userId = response.author.id;
+        if (activeGames.has(channel.id)) {
+          const game = activeGames.get(channel.id);
 
-          if (!userPoints[userId]) {
-            userPoints[userId] = 0;
+          if (response.content.trim().toLowerCase() === game.songName.toLowerCase()) {
+            const userId = response.author.id;
+
+            if (!userPoints[userId]) {
+              userPoints[userId] = 0;
+            }
+            userPoints[userId]++;
+
+            response.reply(
+              `Correct! You've earned a point! The song was **${game.songName}**. Your current points: **${userPoints[userId]}**`
+            );
+
+            collector.stop();
           }
-          userPoints[userId]++;
-
-          response.reply(
-            `Correct! You've earned a point! The song was **${songName}**. Your current points: **${userPoints[userId]}**`
-          );
-          collector.stop();
         }
       });
 
       collector.on('end', collected => {
-        activeGames.delete(message.author.id);
+        if (activeGames.has(channel.id)) {
+          activeGames.delete(channel.id);
 
-        if (collected.size === 0) {
-          channel.send(`Time's up! The correct answer was: **${songName}**`);
+          if (collected.size === 0) {
+            channel.send(`Time's up! No one guessed the song title. The correct answer was: **${songName}**`);
+          }
         }
       });
 
-      cooldowns.add(message.author.id);
-      setTimeout(() => cooldowns.delete(message.author.id), 60000);
+      cooldowns.add(author.id);
+      setTimeout(() => cooldowns.delete(author.id), 60000);
     } else {
-      return sendRandomLyric(channel, message);
+      return sendRandomLyric(channel, author);
     }
   } catch (error) {
     channel.send('An error occurred while fetching lyrics. Please try again later.');
-    activeGames.delete(message.author.id);
+    activeGames.delete(channel.id);
   }
 };
 
