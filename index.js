@@ -1354,7 +1354,7 @@ const sendRandomLyric = async (channel, author) => {
 
     const filter = response => response.author.id !== client.user.id;
 
-    const collector = channel.createMessageCollector({ filter, time: 20000 });
+    const collector = channel.createMessageCollector({ filter, time: 25000 });
 
     collector.on('collect', (response) => {
       if (activeGames.has(channel.id)) {
