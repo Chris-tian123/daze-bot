@@ -1386,7 +1386,6 @@ const sendRandomLyric = async (channel, author) => {
     cooldowns.add(author.id);
     setTimeout(() => cooldowns.delete(author.id), 60000);
     activeGames.delete(channel.id);
-  }
 };
 
 client.login('MTA3MDgyMzg2MTM3OTE0OTg3NA.GDkT7U.Bt7sZtsijnLNpjSaeRkdu-PpbTdORf9IlFo2mw')
