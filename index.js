@@ -5,6 +5,9 @@ const colors = require('colors');
 const Groq = require('groq-sdk');
 const { createCanvas, loadImage, registerFont } = require('canvas');
 const path = require('path');
+const fs = require('fs');
+const lyricsFinder = require('lyrics-finder')
+
 const client = new Client({
     intents: [
         IntentsBitField.Flags.Guilds,
@@ -14,6 +17,12 @@ const client = new Client({
         IntentsBitField.Flags.GuildVoiceStates,
     ],
 });
+const songsData = JSON.parse(fs.readFileSync('songs.json', 'utf8'));
+const songs = songsData.songs;
+
+const userPoints = {};
+let usedSongs = [];
+let isActive = false;
 const groq = new Groq({ apiKey: "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" });
 registerFont(path.join(__dirname, 'BebasNeue-Regular.ttf'), { family: 'Bebas Neue' });
 const dbURI = "mongodb+srv://Asteral:IAMASWIFTIEGURL@cluster0.ohlpp.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0";
@@ -285,6 +294,11 @@ client.on("messageCreate", async (message) => {
     if (message.author.bot) return;
 
     const content = message.content.toLowerCase();
+      
+    if (message.content.startsWith('!lyrics')) {
+    await sendRandomLyric(message.channel);
+  }
+    
 if (content.startsWith(".blacklist")) {
     if (!allowedUsers.includes(message.author.id)) {
         return message.reply("Good try Buddy! You failed.");
