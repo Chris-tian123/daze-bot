@@ -1337,7 +1337,7 @@ const sendRandomLyric = async (channel) => {
           }
           userPoints[userId]++;
 
-          response.reply(`Correct! You've earned a point! Your current points: ${userPoints[userId]}`);
+          response.reply(`Correct! You've earned a point! It was ${songName} . Your current points: ${userPoints[userId]}`);
           collector.stop();
         }
       });
