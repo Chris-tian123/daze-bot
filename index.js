@@ -1310,84 +1310,89 @@ const sendRandomLyric = async (channel, author) => {
     const { songName, artist } = randomSong;
     const lyrics = await lyricsFinder(artist, songName);
 
-    if (lyrics) {
-      const lyricLines = lyrics.split('\n').filter(line => line.trim() !== '');
-
-      if (lyricLines.length < 3) {
-        return sendRandomLyric(channel, author);
-      }
-
-      const selectedLyrics = [];
-      while (selectedLyrics.length < 3) {
-        const randomLine = lyricLines[Math.floor(Math.random() * lyricLines.length)];
-        if (!selectedLyrics.includes(randomLine)) {
-          selectedLyrics.push(randomLine);
-        }
-      }
-
-      const embed = new EmbedBuilder()
-        .setColor('#0099ff')
-        .setTitle('Guess the Song Title!')
-        .setDescription(`Artist: **${artist}**`)
-        .setFooter({ text: 'You have 20 seconds to guess!' });
-
-      selectedLyrics.forEach((lyric, index) => {
-        embed.addFields({
-          name: `Lyric ${index + 1}`,
-          value: `"${lyric}"`,
-          inline: false
-        });
-      });
-
-      activeGames.set(channel.id, { songName, artist });
-
-      const msg = await channel.send({ embeds: [embed] });
-
-      const filter = response => response.author.id !== client.user.id;
-
-      const collector = channel.createMessageCollector({ filter, time: 20000 });
-
-      collector.on('collect', (response) => {
-        if (activeGames.has(channel.id)) {
-          const game = activeGames.get(channel.id);
-
-          if (response.content.trim().toLowerCase() === game.songName.toLowerCase()) {
-            const userId = response.author.id;
-
-            if (!userPoints[userId]) {
-              userPoints[userId] = 0;
-            }
-            userPoints[userId]++;
-
-            response.reply(
-              `Correct! You've earned a point! The song was **${game.songName}**. Your current points: **${userPoints[userId]}**`
-            );
-
-            collector.stop();
-          }
-        }
-      });
-
-      collector.on('end', collected => {
-        if (activeGames.has(channel.id)) {
-          activeGames.delete(channel.id);
-
-          if (collected.size === 0) {
-            channel.send(`Time's up! No one guessed the song title. The correct answer was: **${songName}**`);
-          }
-        }
-      });
-
-      cooldowns.add(author.id);
-      setTimeout(() => cooldowns.delete(author.id), 60000);
-    } else {
-      return sendRandomLyric(channel, author);
+    if (!lyrics) {
+      return channel.send(
+        `Lyrics not found for **${songName}** by **${artist}**. Trying another song...`
+      );
     }
+
+    const lyricLines = lyrics.split('\n').filter(line => line.trim() !== '');
+
+    if (lyricLines.length < 3) {
+      return channel.send(
+        `Not enough lyrics found for **${songName}** by **${artist}**. Trying another song...`
+      );
+    }
+
+    const selectedLyrics = [];
+    while (selectedLyrics.length < 3) {
+      const randomLine = lyricLines[Math.floor(Math.random() * lyricLines.length)];
+      if (!selectedLyrics.includes(randomLine)) {
+        selectedLyrics.push(randomLine);
+      }
+    }
+
+    const embed = new EmbedBuilder()
+      .setColor('#0099ff')
+      .setTitle('Guess the Song Title!')
+      .setDescription(`Artist: **${artist}**`)
+      .setFooter({ text: 'You have 20 seconds to guess!' });
+
+    selectedLyrics.forEach((lyric, index) => {
+      embed.addFields({
+        name: `Lyric ${index + 1}`,
+        value: `"${lyric}"`,
+        inline: false
+      });
+    });
+
+    activeGames.set(channel.id, { songName, artist });
+
+    const msg = await channel.send({ embeds: [embed] });
+
+    const filter = response => response.author.id !== client.user.id;
+
+    const collector = channel.createMessageCollector({ filter, time: 20000 });
+
+    collector.on('collect', (response) => {
+      if (activeGames.has(channel.id)) {
+        const game = activeGames.get(channel.id);
+
+        if (response.content.trim().toLowerCase() === game.songName.toLowerCase()) {
+          const userId = response.author.id;
+
+          if (!userPoints[userId]) {
+            userPoints[userId] = 0;
+          }
+          userPoints[userId]++;
+
+          response.reply(
+            `Correct! You've earned a point! The song was **${game.songName}**. Your current points: **${userPoints[userId]}**`
+          );
+
+          collector.stop();
+        }
+      }
+    });
+
+    collector.on('end', collected => {
+      if (activeGames.has(channel.id)) {
+        activeGames.delete(channel.id);
+
+        if (collected.size === 0) {
+          channel.send(`Time's up! No one guessed the song title. The correct answer was: **${songName}**`);
+        }
+      }
+    });
+
+    cooldowns.add(author.id);
+    setTimeout(() => cooldowns.delete(author.id), 60000);
   } catch (error) {
-    channel.send('An error occurred while fetching lyrics. Please try again later.');
+    channel.send(
+      `An error occurred while fetching lyrics for **${randomSong.songName}** by **${randomSong.artist}**. Trying another song...`
+    );
     activeGames.delete(channel.id);
   }
 };
-
 
 client.login('MTA3MDgyMzg2MTM3OTE0OTg3NA.GDkT7U.Bt7sZtsijnLNpjSaeRkdu-PpbTdORf9IlFo2mw')
