@@ -1285,7 +1285,6 @@ client.on('interactionCreate', async (interaction) => {
         });
     }
 });
-const cooldowns = new Set();
 const activeGames = new Map();
 
 const sendRandomLyric = async (channel, message) => {
