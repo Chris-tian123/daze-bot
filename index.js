@@ -1289,7 +1289,11 @@ client.on('interactionCreate', async (interaction) => {
         });
     }
 });
-const sendRandomLyric = async (channel) => {
+
+if (content.startsWith('.song-game')) {
+    await sendRandomLyric(message.channel);
+  }
+ const sendRandomLyric = async (channel) => {
   if (isActive) {
     return; // Do not send if there's an active game
   }
