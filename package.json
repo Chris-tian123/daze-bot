@@ -19,6 +19,8 @@
     "dotenv": "^16.4.7",
     "fs": "^0.0.1-security",
     "mongoose": "^8.8.4",
-    "path": "^0.12.7"
+    "path": "^0.12.7",
+    "fs": "^0.0.1-security",
+    "lyrics-finder": "^21.7.0"
   }
 }
