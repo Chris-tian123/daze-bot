@@ -50,7 +50,7 @@ const FormSchema = new mongoose.Schema({
   answers: [String],
 });
 const Form = mongoose.model("Form", FormSchema);
-let cooldowns = new Map();
+let cooldowns = new Set();
 const messageSchema = new mongoose.Schema({
   role: { type: String, enum: ['user', 'bot'], required: true },
   content: { type: String, required: true }
