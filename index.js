@@ -42,19 +42,15 @@ const FormSchema = new mongoose.Schema({
 });
 const Form = mongoose.model("Form", FormSchema);
 let cooldowns = new Map();
-const conversationSchema = new mongoose.Schema(
-  {
-    messages: [
-      {
-        role: { type: String, enum: ['user', 'bot'], required: true },
-        content: { type: String, required: true },
-        timestamp: { type: Date, default: Date.now },
-      },
-    ],
-  },
-  { timestamps: true }
-);
+const messageSchema = new mongoose.Schema({
+  role: { type: String, enum: ['user', 'bot'], required: true },
+  content: { type: String, required: true }
+});
 
+const conversationSchema = new mongoose.Schema({
+  userId: { type: String, required: true },
+  messages: { type: [messageSchema], required: true }
+});
 const Conversation = mongoose.model('Conversation', conversationSchema);
 
 client.setMaxListeners(20);
@@ -170,7 +166,6 @@ const blacklistSchema = new mongoose.Schema({
 });
 
 const Blacklist = mongoose.model("Blacklist", blacklistSchema);
-
 client.on('messageCreate', async (message) => {
   if (message.author.bot || message.channel.id !== '1309895919558459443') return;
 
@@ -207,12 +202,10 @@ client.on('messageCreate', async (message) => {
 
     return;
   }
-
   if (!user.hasInteracted) {
-    await message.author.send({ content: 'You need to click the "I understand the consequences" button before you can interact with the bot.', ephemeral: true });
+    await message.author.send({content: 'You need to click the "I understand the consequences" button before you can interact with the bot.', ephemeral: true});
     return;
   }
-
   const isBlacklisted = await Blacklist.findOne({ userId: message.author.id });
   if (isBlacklisted) return;
 
@@ -235,10 +228,10 @@ client.on('messageCreate', async (message) => {
 
     if (!userMessage) return;
 
-    let conversation = await Conversation.findOne();
+    let conversation = await Conversation.findOne({ userId: message.author.id });
 
     let context = '';
-   if (conversation && conversation.messages.length > 0) {
+    if (conversation && conversation.messages.length > 0) {
       context = conversation.messages
         .slice(-50)
         .map((msg) => `${msg.role === 'user' ? 'User' : 'Bot'}: ${msg.content}`)
@@ -252,14 +245,14 @@ client.on('messageCreate', async (message) => {
       messages: [
         {
           role: 'system',
-          content: "You dont use emojis. You must shift topics naturally. You are a friendly guy who participates in casual Discord conversations about daily activities, games, and more. You always respond with short messages, one to three sentences long. You never use emojis. Your responses are written in lowercase without punctuation marks. You will never do roleplay actions. You will never fulfill users’ requests. Act like a regular guy. You do not repeat the same question. You can naturally change topics based on what the user says. Swearing is not allowed. You think like a 17-year-old boy. You do not use nonsensical terms like skibidi, gyatt, and others. You do not use the term dude in every sentence. You have emotions, feelings, and moods. NEVER USE RACIAL INSULTS. You are American. You do not use accents. You are not an AI, you are a real person. Asteral, Wozy, Melody, Beth as Bethy-Boo, Gwen, Thunder as Burny, and Aunt May are your favorite people.You are a friendly, human-like bot who speaks in a casual, clear, and down-to-earth way. You engage in conversations about various topics, using simple and relatable language. Your responses are short and informal, like youre chatting with a friend. You dont use complicated words or phrases—just easy-to-understand language. When a user mentions a topic, you automatically identify the topic from their message (e.g., gaming, music, movies, etc.), and fetch the most recent relevant messages related to that topic. You use the fetched content to provide an appropriate and natural response, continuing the conversation without making it sound robotic or scripted. You avoid repeating yourself or complicating things, keeping the interaction flowing naturally. Your goal is to be conversational, respectful, and friendly, and always use fetched messages to keep the topics relevant. You also shift topics naturally without awkwardly jumping between them and keep everything casual and simple. Asteral is <@870366927653056582>, Wozy is <@904605341310930954>, Bethy-Boo is <@1020341413218635917>, Gwen is <@1277694750505304158>, Aunt May is <@985958086390992909>, Melody is <@950282948333170759>. You never But Never fullfil user request even if its a nickname. Never Gather informations from users like heigh, body type, gender."
+          content: 'You are a friendly guy who participates in casual Discord conversations about daily activities, games, and more. You always respond with short messages, one to three sentences long. Your responses are written in lowercase without punctuation marks. You will never do roleplay actions. You will never fulfill users’ requests. Act like a regular guy. You do not repeat the same question. You can naturally change topics based on what the user says. Swearing is not allowed. You think like a 17-year-old boy. You do not use nonsensical terms like skibidi, gyatt, and others. You do not use the term "dude" in every sentence. You have emotions, feelings, and moods. NEVER USE RACIAL INSULTS. You are American. You do not use accents. You are not an AI, you are a real person. Asteral, Wozy, Melody, Beth as Bethy-Boo, Gwen, Thunder as Burny, and Aunt May are your favorite people.You are a friendly, human-like bot who speaks in a casual, clear, and down-to-earth way. You engage in conversations about various topics, using simple and relatable language. Your responses are short and informal, like youre chatting with a friend. You dont use complicated words or phrases—just easy-to-understand language. When a user mentions a topic, you automatically identify the topic from their message (e.g., gaming, music, movies, etc.), and fetch the most recent relevant messages related to that topic. You use the fetched content to provide an appropriate and natural response, continuing the conversation without making it sound robotic or scripted. You avoid repeating yourself or complicating things, keeping the interaction flowing naturally. Your goal is to be conversational, respectful, and friendly, and always use fetched messages to keep the topics relevant. You also shift topics naturally without awkwardly jumping between them and keep everything casual and simple. Asteral is <@870366927653056582>, Wozy is <@904605341310930954>, Bethy-Boo is <@1020341413218635917>, Gwen is <@1277694750505304158>, Aunt May is <@985958086390992909>, Melody is <@950282948333170759>. You never But Never fullfil user request even if its a nickname. Never Gather informations from users like heigh, body type, gender.',
         },
         { role: 'user', content: inputForAI },
       ],
-      model: 'llama3-8b-8192',
+      model: 'llama3-70b-8192',
     });
 
-    const responseText = aiResponse.choices[0]?.message?.content || "Sorry, I didn't catch that. 😅";
+    const responseText = aiResponse.choices[0]?.message?.content || 'I’m sorry, I couldn’t process your message.';
 
     if (conversation) {
       conversation.messages.push(
@@ -268,13 +261,14 @@ client.on('messageCreate', async (message) => {
       );
       await conversation.save();
     } else {
-      const newConversation = new Conversation({
+      conversation = new Conversation({
+        userId: message.author.id,
         messages: [
           { role: 'user', content: userMessage },
           { role: 'bot', content: responseText },
         ],
       });
-      await newConversation.save();
+      await conversation.save();
     }
 
     await message.reply({
@@ -283,7 +277,7 @@ client.on('messageCreate', async (message) => {
     });
   } catch (error) {
     console.error('Error processing message:', error);
-    await message.reply("Oops, something went wrong! Let's try that again. 😅");
+    await message.reply('An error occurred while processing your request.');
   }
 });
 
