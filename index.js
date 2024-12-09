@@ -676,6 +676,7 @@ if (content.startsWith(".blacklist")) {
     }
     
 if (content.startsWith("πecho")) {
+    if (!message.member.permissions.has(PermissionsBitField.Flags.ManageMessages)) return;
       const isBlacklisted = await Blacklist.findOne({ userId: message.author.id });
   if (isBlacklisted) return;
 
