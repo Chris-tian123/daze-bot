@@ -296,9 +296,9 @@ if (content.startsWith(".blacklist")) {
     }
 
     const command = args[0];
-    const target = message.mentions.users.first();
+    const target = message.mentions.users.first() || client.users.cache.get(args[1]);
 
-    if (!target) {
+    if (!target && command === 'add') {
         return message.reply("Please mention a valid user.");
     }
 
@@ -308,7 +308,8 @@ if (content.startsWith(".blacklist")) {
             return message.reply("This user is already blacklisted.");
         }
 
-        const reason = args.slice(1).join(" ") || "No reason provided.";
+        // Ensure the reason is taken from everything after the mention/user ID
+        const reason = args.slice(target ? 2 : 1).join(" ") || "No reason provided.";
         blacklistedUser = new Blacklist({ userId: target.id, reason: reason });
         await blacklistedUser.save();
 
