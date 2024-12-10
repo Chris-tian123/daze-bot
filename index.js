@@ -1436,7 +1436,7 @@ const sendRandomLyric = async (channel, author) => {
         }
       }
     });
-
+//restart
     cooldowns.add(author.id);
     setTimeout(() => cooldowns.delete(author.id), 3000);
   } catch (error) {
