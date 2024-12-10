@@ -648,7 +648,20 @@ if (content.startsWith(".blacklist")) {
         await message.channel.send({ embeds: [embed] });
         return;
     }
-    
+    if (content.startsWith("πflipcoin")) {
+        const isBlacklisted = await Blacklist.findOne({ userId: message.author.id });
+  if (isBlacklisted) return;
+
+    const outcome = Math.random() < 0.5 ? 'Heads' : 'Tails';
+        
+    const embed = new EmbedBuilder()
+        .setColor("#FFD700")
+        .setTitle("Coin Flip")
+        .setDescription(`You flipped a coin... it's **${outcome}**!`)
+        .setTimestamp();
+
+    await message.reply({ embeds: [embed] });
+    }
     if (content.startsWith("πpotato")) {
           const isBlacklisted = await Blacklist.findOne({ userId: message.author.id });
   if (isBlacklisted) return;
@@ -711,21 +724,6 @@ if (content.startsWith("πecho")) {
         }
         return;
     }
-    if (content.startsWith("πflipcoin")) {
-        const isBlacklisted = await Blacklist.findOne({ userId: message.author.id });
-  if (isBlacklisted) return;
-
-    const outcome = Math.random() < 0.5 ? 'Heads' : 'Tails';
-        
-    const embed = new EmbedBuilder()
-        .setColor("#FFD700")
-        .setTitle("Coin Flip")
-        .setDescription(`You flipped a coin... it's **${outcome}**!`)
-        .setTimestamp();
-
-    await message.reply({ embeds: [embed] });
-    }
-
     if (cooldowns.has(userId)) {
         const lastUsed = cooldowns.get(userId);
         if (currentTime - lastUsed < cooldownTime) {
