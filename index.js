@@ -662,6 +662,40 @@ if (content.startsWith(".blacklist")) {
 
     await message.reply({ embeds: [embed] });
     }
+    if (content.startsWith("πrps")) {
+        const isBlacklisted = await Blacklist.findOne({ userId: message.author.id });
+  if (isBlacklisted) return;
+    const choices = ["Rock", "Paper", "Scissors"];
+    const botChoice = choices[Math.floor(Math.random() * choices.length)];
+
+    const userChoice = content.slice(5).trim();
+
+    if (!choices.includes(userChoice)) {
+        return message.reply("Please choose Rock, Paper, or Scissors.");
+    }
+
+    let result = "";
+    if (userChoice === botChoice) {
+        result = "It's a draw!";
+    } else if (
+        (userChoice === "Rock" && botChoice === "Scissors") ||
+        (userChoice === "Paper" && botChoice === "Rock") ||
+        (userChoice === "Scissors" && botChoice === "Paper")
+    ) {
+        result = "You win!";
+    } else {
+        result = "You lose!";
+    }
+
+    const embed = new EmbedBuilder()
+        .setColor("#32CD32")
+        .setTitle("Rock, Paper, Scissors")
+        .setDescription(`You chose **${userChoice}**, I chose **${botChoice}**. ${result}`)
+        .setTimestamp();
+
+    await message.reply({ embeds: [embed] });
+    }
+
     if (content.startsWith("πpotato")) {
           const isBlacklisted = await Blacklist.findOne({ userId: message.author.id });
   if (isBlacklisted) return;
