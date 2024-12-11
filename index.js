@@ -1200,7 +1200,7 @@ if (content.startsWith(".snipe")) {
 
       // Create a collector for button interactions
       const collector = msg.createMessageComponentCollector({
-        filter: (i) => i.user.id === interaction.user.id,
+        filter: (i) => i.user.id === message.author.id,
         time: 600000, // 10 minutes
       });
 
