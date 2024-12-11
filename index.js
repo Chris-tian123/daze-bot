@@ -454,7 +454,7 @@ if (content.startsWith(".blacklist")) {
         return;
     }
 
-   if (content.startsWith("πuserinfo") || content.startsWith("πui")){
+   if (content.startsWith(".userinfo") || content.startsWith(".ui")){
        const isBlacklisted = await Blacklist.findOne({ userId: message.author.id });
   if (isBlacklisted) return;
     if (!message.member.permissions.has("MANAGE_MESSAGES")) {
