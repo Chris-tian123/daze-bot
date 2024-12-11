@@ -453,32 +453,29 @@ if (content.startsWith(".blacklist")) {
         await message.channel.send({ embeds: [embed] });
         return;
     }
+    const { EmbedBuilder } = require('discord.js');
 
-   if (content.startsWith(".userinfo") || content.startsWith(".ui")){
-       const isBlacklisted = await Blacklist.findOne({ userId: message.author.id });
+    if (content.startsWith("πuserinfo") || content.startsWith("πui")) {
+        const isBlacklisted = await Blacklist.findOne({ userId: message.author.id });
   if (isBlacklisted) return;
     if (!message.member.permissions.has("MANAGE_MESSAGES")) {
         return message.reply("You need the 'Manage Messages' permission to use this command.");
     }
+
     const args = content.split(" ").slice(1);
     const target = args[0];
     let member;
 
     try {
-        if (target) {
-            if (message.mentions.members.size > 0) {
-                member = message.mentions.members.first();
-            } else if (/^\d{17,19}$/.test(target)) {
-                member = await message.guild.members.fetch(target);
-            }
+        if (target && /^\d{17,19}$/.test(target)) {
+            member = await message.guild.members.fetch(target);
         }
 
         if (!member) {
-            member = message.member;
+            return message.reply("Could not find a user with that ID.");
         }
 
         const user = member.user;
-
         const roles = member.roles.cache
             .filter(role => role.id !== message.guild.id)
             .sort((a, b) => b.position - a.position)
@@ -486,18 +483,13 @@ if (content.startsWith(".blacklist")) {
             .join(", ") || "None";
 
         const accountAge = Math.floor((Date.now() - user.createdTimestamp) / (1000 * 60 * 60 * 24));
-
-        const sortedMembers = await message.guild.members.fetch().then(members =>
-            members.sort((a, b) => a.joinedTimestamp - b.joinedTimestamp)
-        );
+        const members = await message.guild.members.fetch();
+        const sortedMembers = members.sort((a, b) => a.joinedTimestamp - b.joinedTimestamp);
         const joinPosition = sortedMembers.map(m => m.id).indexOf(member.id) + 1;
 
         const lastMessage = user.lastMessage ? `[Jump to Message](${user.lastMessage.url})` : "No recent messages";
-
-        const auditLogs = await message.guild.fetchAuditLogs({ 
-            limit: 1, 
-            type: "MEMBER_UPDATE"
-        });
+        
+        const auditLogs = await message.guild.fetchAuditLogs({ limit: 1, type: "MEMBER_UPDATE" });
         const auditLogEntry = auditLogs.entries.first();
         const auditLogReason = auditLogEntry ? auditLogEntry.reason : "No recent actions";
 
@@ -524,10 +516,7 @@ if (content.startsWith(".blacklist")) {
         await message.reply({ embeds: [embed] });
     } catch (error) {
         console.error(error);
-        await message.reply("Could not find a user with that ID or mention.");
-        console.log(target); 
-        console.log(member);
-
+        await message.reply("Could not find a user with that ID.");
     }
     }
 
