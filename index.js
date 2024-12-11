@@ -634,6 +634,47 @@ if (content.startsWith(".blacklist")) {
     
         await message.reply({ embeds: [embed] });
     }
+    if (content.startsWith("πmath")) {
+        const isBlacklisted = await Blacklist.findOne({ userId: message.author.id });
+  if (isBlacklisted) return;
+    const num1 = Math.floor(Math.random() * 100) + 1;
+    const num2 = Math.floor(Math.random() * 100) + 1;
+    const operators = ["+", "-", "*", "/"];
+    const operator = operators[Math.floor(Math.random() * operators.length)];
+    let question = `${num1} ${operator} ${num2}`;
+    let answer;
+
+    switch (operator) {
+        case "+":
+            answer = num1 + num2;
+            break;
+        case "-":
+            answer = num1 - num2;
+            break;
+        case "*":
+            answer = num1 * num2;
+            break;
+        case "/":
+            answer = (num1 / num2).toFixed(2); // Rounded to two decimal places
+            break;
+    }
+
+    const embed = new EmbedBuilder()
+        .setColor("#32CD32")
+        .setTitle("Math Challenge")
+        .setDescription(`Solve the equation: **${question}**\nWhat is the answer?`)
+        .setTimestamp();
+    await message.reply({ embeds: [embed] });
+    const filter = (response) => response.content === answer.toString();
+    const collected = await message.channel.awaitMessages({ filter, max: 1, time: 30000 });
+
+    if (collected.size > 0) {
+        message.reply(`Correct! The answer is **${answer}**.`);
+    } else {
+        message.reply(`Time's up! The correct answer was **${answer}**.`);
+    }
+    }
+
     
     if (content.startsWith("πpetwozy")) {
           const isBlacklisted = await Blacklist.findOne({ userId: message.author.id });
