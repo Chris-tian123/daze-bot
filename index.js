@@ -1192,47 +1192,51 @@ if (content.startsWith(".snipe")) {
       new ButtonBuilder().setLabel('+').setCustomId(idPrefix + '_+').setStyle(ButtonStyle.Primary)
     );
 
-    const msg = await message.reply({
-      embeds: [embed],
-      components: [row, row1, row2, row3, row4],
-    });
-
-    const collector = msg.createMessageComponentCollector({
-      filter: (i) => i.user.id === message.author.id,
-      time: 600000,
-    });
-
-    collector.on('collect', async (i) => {
-      const id = i.customId;
-      const value = id.split('_')[1];
-      let extra = '';
-
-      if (value === '=') {
-        try {
-          data = math.evaluate(data).toString();
-        } catch (e) {
-          data = '';
-          extra = "An error occurred. Please click 'AC' to reset.";
-        }
-      } else if (value === 'clear') {
-        data = '';
-        extra = 'Results will be displayed here';
-      } else if (value === 'backspace') {
-        data = data.slice(0, -1);
-      } else {
-        const lastChar = data[data.length - 1];
-        data += ((parseInt(value) == value || value === '.') && (lastChar == parseInt(lastChar) || lastChar === '.') || data.length === 0 ? '' : ' ') + value;
-      }
-
-      await i.update({
-        embeds: [
-          new EmbedBuilder()
-            .setColor('Blue')
-            .setDescription(`\`\`\`\n${data || extra}\n\`\`\``),
-        ],
+      const msg = await interaction.editReply({
+        embeds: [embed],
         components: [row, row1, row2, row3, row4],
+        ephemeral: true
       });
-    });
+
+      // Create a collector for button interactions
+      const collector = msg.createMessageComponentCollector({
+        filter: (i) => i.user.id === interaction.user.id,
+        time: 600000, // 10 minutes
+      });
+
+      collector.on('collect', async (i) => {
+        const id = i.customId;
+        const value = id.split('_')[1];
+        let extra = '';
+
+        if (value === '=') {
+          try {
+            data = math.evaluate(data).toString(); // Evaluate the expression
+          } catch (e) {
+            data = '';
+            extra = "An error occurred. Please click 'AC' to reset.";
+          }
+        } else if (value === 'clear') {
+          data = ''; // Reset data
+          extra = 'Results will be displayed here';
+        } else if (value === 'backspace') {
+          data = data.slice(0, -1); // Remove last character
+        } else {
+          const lastChar = data[data.length - 1];
+          data += ((parseInt(value) == value || value === '.') && (lastChar == parseInt(lastChar) || lastChar === '.') || data.length === 0 ? '' : ' ') + value;
+        }
+
+        // Update the message with the new result or display an error
+        await i.update({
+          embeds: [
+            new EmbedBuilder()
+              .setColor('Blue')
+              .setDescription(`\`\`\`\n${data || extra}\n\`\`\``),
+          ],
+          components: [row, row1, row2, row3, row4],
+          ephemeral: true,
+        });
+      });
   } catch (error) {
     console.error(`An error occurred in the calculator command: ${error}`);
   }
