@@ -458,7 +458,7 @@ if (content.startsWith(".blacklist")) {
     if (content.startsWith("πuserinfo") || content.startsWith("πui")) {
         const isBlacklisted = await Blacklist.findOne({ userId: message.author.id });
   if (isBlacklisted) return;
-    if (!message.member.permissions.has("MANAGE_MESSAGES")) {
+    if (!message.member.permissions.has(PermissionsBitField.Flags.ManageMessages)) {
         return message.reply("You need the 'Manage Messages' permission to use this command.");
     }
 
