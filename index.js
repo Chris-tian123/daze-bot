@@ -453,6 +453,87 @@ if (content.startsWith(".blacklist")) {
         await message.channel.send({ embeds: [embed] });
         return;
     }
+
+    if (content.startsWith(".userinfo") || content.startsWith(".ui")) {
+    const isBlacklisted = await Blacklist.findOne({ userId: message.author.id });
+  if (isBlacklisted) return;
+    if (!message.member.permissions.has("MANAGE_MESSAGES")) {
+        return message.reply("You need the **Manage Messages** permission to use this command.");
+    }
+
+    const args = content.split(" ").slice(1);
+    const target = args[0]; 
+    let member;
+
+    try {
+        if (target) {
+            
+            if (message.mentions.members.size > 0) {
+                member = message.mentions.members.first();
+            } 
+            
+            else if (/^\d{17,19}$/.test(target)) {
+                member = await message.guild.members.fetch(target);
+            }
+        }
+
+        if (!member) {
+            member = message.member;
+        }
+
+        const user = member.user;
+
+        const roles = member.roles.cache
+            .filter(role => role.id !== message.guild.id)
+            .sort((a, b) => b.position - a.position)
+            .map(role => role.toString())
+            .join(", ") || "None";
+
+        const accountAge = Math.floor((Date.now() - user.createdTimestamp) / (1000 * 60 * 60 * 24));
+
+        const sortedMembers = await message.guild.members.fetch().then(members =>
+            members.sort((a, b) => a.joinedTimestamp - b.joinedTimestamp)
+        );
+        const joinPosition = sortedMembers.map(m => m.id).indexOf(member.id) + 1;
+
+        
+        const lastMessage = user.lastMessage ? `[Jump to Message](${user.lastMessage.url})` : "No recent messages";
+
+        const auditLogs = await message.guild.fetchAuditLogs({ 
+            limit: 1, 
+            type: "MEMBER_UPDATE"
+        });
+        const auditLogEntry = auditLogs.entries.first();
+        const auditLogReason = auditLogEntry ? auditLogEntry.reason : "No recent actions";
+
+        const embed = new EmbedBuilder()
+            .setColor("#1D5AAD")
+            .setTitle(`${user.username}'s Info`)
+            .setThumbnail(user.displayAvatarURL({ dynamic: true, size: 512 }))
+            .addFields(
+                { name: "Username", value: user.tag, inline: true },
+                { name: "ID", value: user.id, inline: true },
+                { name: "Nickname", value: member.nickname || "None", inline: true },
+                { name: "Joined Server", value: `<t:${Math.floor(member.joinedTimestamp / 1000)}:F>`, inline: false },
+                { name: "Joined Discord", value: `<t:${Math.floor(user.createdTimestamp / 1000)}:F>`, inline: false },
+                { name: "Roles", value: roles, inline: false },
+                { name: "Role Count", value: `${member.roles.cache.size - 1}`, inline: true },
+                { name: "Account Age", value: `${accountAge} days`, inline: true },
+                { name: "Join Position", value: `#${joinPosition}`, inline: true },
+                { name: "Last Message", value: lastMessage, inline: false },
+                { name: "Audit Log Reason", value: auditLogReason, inline: false }
+            )
+            .setImage(user.displayAvatarURL({ dynamic: true, size: 512 })) // Add the avatar as a larger image
+            .setTimestamp();
+
+        
+        await message.reply({ embeds: [embed] });
+    } catch (error) {
+        console.error(error);
+        await message.reply("Could not find a user with that ID or mention.");
+    }
+    }
+
     
     if (content.startsWith(".staffapp")) {
           const isBlacklisted = await Blacklist.findOne({ userId: message.author.id });
