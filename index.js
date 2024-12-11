@@ -517,6 +517,8 @@ if (content.startsWith(".blacklist")) {
     } catch (error) {
         console.error(error);
         await message.reply("Could not find a user with that ID.");
+        console.log(target); 
+        console.log(member); 
     }
     }
 
