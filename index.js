@@ -567,7 +567,45 @@ if (content.startsWith(".blacklist")) {
     
         await sentMessage.edit({ content: null, embeds: [embed] });
     }
-    
+    if (content.startsWith(".cal")) {
+        const isBlacklisted = await Blacklist.findOne({ userId: message.author.id });
+  if (isBlacklisted) return;
+    const args = content.slice(4).trim().split(" ");
+    if (args.length !== 3) return message.reply("Please provide an operation in the format: `.cal <your first number> <operator> <your second number>` (e.g., `.cal 5 + 3`).");
+
+    const num1 = parseFloat(args[0]);
+    const operator = args[1];
+    const num2 = parseFloat(args[2]);
+
+    if (isNaN(num1) || isNaN(num2)) return message.reply("Please provide valid numbers.");
+
+    let result;
+    switch (operator) {
+        case "+":
+            result = num1 + num2;
+            break;
+        case "-":
+            result = num1 - num2;
+            break;
+        case "*":
+            result = num1 * num2;
+            break;
+        case "/":
+            if (num2 === 0) return message.reply("Cannot divide by zero.");
+            result = num1 / num2;
+            break;
+        default:
+            return message.reply("Please use a valid operator like:` +, -, *, or /.`");
+    }
+
+    const embed = new EmbedBuilder()
+        .setColor("#32CD32")
+        .setTitle("Calculator Result")
+        .setDescription(`**${num1} ${operator} ${num2} = ${result}**`)
+        .setTimestamp();
+    await message.reply({ embeds: [embed] });
+    }
+
     // ------------------ Fun COMMANDS -------------------------------------
     if (content.startsWith("πban")) {
           const isBlacklisted = await Blacklist.findOne({ userId: message.author.id });
