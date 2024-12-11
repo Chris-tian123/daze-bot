@@ -571,8 +571,7 @@ if (content.startsWith(".blacklist")) {
         const isBlacklisted = await Blacklist.findOne({ userId: message.author.id });
   if (isBlacklisted) return;
     const args = content.slice(4).trim().split(" ");
-    if (args.length !== 3) return message.reply("Please provide an operation in the format: `.cal <your first number> <operator> <your second number>` (e.g., `.cal 5 + 3`).");
-
+    if (args.length !== 3) return message.reply("Please provide an operation in the format: `.cal <your first number> <operator> <your second number>` (e.g., `.cal 5 + 3`). Dont forget to leave space between the number and your operation symbols.");
     const num1 = parseFloat(args[0]);
     const operator = args[1];
     const num2 = parseFloat(args[2]);
