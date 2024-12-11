@@ -454,25 +454,22 @@ if (content.startsWith(".blacklist")) {
         return;
     }
 
-    if (content.startsWith(".userinfo") || content.startsWith(".ui")) {
-    const isBlacklisted = await Blacklist.findOne({ userId: message.author.id });
+   if (content.startsWith("πuserinfo") || content.startsWith("πui")) {
+       const isBlacklisted = await Blacklist.findOne({ userId: message.author.id });
   if (isBlacklisted) return;
     if (!message.member.permissions.has("MANAGE_MESSAGES")) {
-        return message.reply("You need the **Manage Messages** permission to use this command.");
+        return message.reply("You need the 'Manage Messages' permission to use this command.");
     }
 
     const args = content.split(" ").slice(1);
-    const target = args[0]; 
+    const target = args[0];
     let member;
 
     try {
         if (target) {
-            
             if (message.mentions.members.size > 0) {
                 member = message.mentions.members.first();
-            } 
-            
-            else if (/^\d{17,19}$/.test(target)) {
+            } else if (/^\d{17,19}$/.test(target)) {
                 member = await message.guild.members.fetch(target);
             }
         }
@@ -496,7 +493,6 @@ if (content.startsWith(".blacklist")) {
         );
         const joinPosition = sortedMembers.map(m => m.id).indexOf(member.id) + 1;
 
-        
         const lastMessage = user.lastMessage ? `[Jump to Message](${user.lastMessage.url})` : "No recent messages";
 
         const auditLogs = await message.guild.fetchAuditLogs({ 
@@ -523,18 +519,16 @@ if (content.startsWith(".blacklist")) {
                 { name: "Last Message", value: lastMessage, inline: false },
                 { name: "Audit Log Reason", value: auditLogReason, inline: false }
             )
-            .setImage(user.displayAvatarURL({ dynamic: true, size: 512 })) // Add the avatar as a larger image
+            .setImage(user.displayAvatarURL({ dynamic: true, size: 512 }))
             .setTimestamp();
 
-        
         await message.reply({ embeds: [embed] });
     } catch (error) {
         console.error(error);
         await message.reply("Could not find a user with that ID or mention.");
     }
-    }
+}
 
-    
     if (content.startsWith(".staffapp")) {
           const isBlacklisted = await Blacklist.findOne({ userId: message.author.id });
   if (isBlacklisted) return;
