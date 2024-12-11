@@ -454,13 +454,12 @@ if (content.startsWith(".blacklist")) {
         return;
     }
 
-   if (content.startsWith("πuserinfo") || content.startsWith("πui")) {
+   if (content.startsWith("πuserinfo") || content.startsWith("πui")){
        const isBlacklisted = await Blacklist.findOne({ userId: message.author.id });
   if (isBlacklisted) return;
     if (!message.member.permissions.has("MANAGE_MESSAGES")) {
         return message.reply("You need the 'Manage Messages' permission to use this command.");
     }
-
     const args = content.split(" ").slice(1);
     const target = args[0];
     let member;
@@ -527,7 +526,7 @@ if (content.startsWith(".blacklist")) {
         console.error(error);
         await message.reply("Could not find a user with that ID or mention.");
     }
-}
+    }
 
     if (content.startsWith(".staffapp")) {
           const isBlacklisted = await Blacklist.findOne({ userId: message.author.id });
