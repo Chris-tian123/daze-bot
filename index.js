@@ -1227,7 +1227,7 @@ if (content.startsWith(".snipe")) {
         }
 
         // Update the message with the new result or display an error
-        await i.update({
+        await msg.edit({
           embeds: [
             new EmbedBuilder()
               .setColor('Blue')
