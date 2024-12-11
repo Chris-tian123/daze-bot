@@ -1146,9 +1146,10 @@ if (content.startsWith(".snipe")) {
             message.reply("Sorry, I couldn't create the ship image.");
         }
     }
-    if (content.startsWith("πcalc")) {
-          const isBlacklisted = await Blacklist.findOne({ userId: message.author.id });
+if (content.startsWith("πcalc")) {
+  const isBlacklisted = await Blacklist.findOne({ userId: message.author.id });
   if (isBlacklisted) return;
+
   try {
     const idPrefix = 'calculator';
     let data = '';
@@ -1187,56 +1188,52 @@ if (content.startsWith(".snipe")) {
 
     const row4 = new ActionRowBuilder().addComponents(
       new ButtonBuilder().setLabel('0').setCustomId(idPrefix + '_0').setStyle(ButtonStyle.Secondary),
-      new ButtonBuilder().setLabel('.').setCustomId(idPrefix + '_.').setStyle(ButtonStyle.Secondary),
+      new ButtonBuilder().setLabel('.').setCustomId(idPrefix + '_dot').setStyle(ButtonStyle.Secondary), // Fixed customId
       new ButtonBuilder().setLabel('=').setCustomId(idPrefix + '_=').setStyle(ButtonStyle.Success),
       new ButtonBuilder().setLabel('+').setCustomId(idPrefix + '_+').setStyle(ButtonStyle.Primary)
     );
 
-      const msg = await message.reply({
-        embeds: [embed],
-        components: [row, row1, row2, row3, row4],
-        ephemeral: true
-      });
+    const msg = await message.reply({
+      embeds: [embed],
+      components: [row, row1, row2, row3, row4],
+    });
 
-      // Create a collector for button interactions
-      const collector = msg.createMessageComponentCollector({
-        filter: (i) => i.user.id === message.author.id,
-        time: 600000, // 10 minutes
-      });
+    const collector = msg.createMessageComponentCollector({
+      filter: (i) => i.user.id === message.author.id,
+      time: 600000, // 10 minutes
+    });
 
-      collector.on('collect', async (i) => {
-        const id = i.customId;
-        const value = id.split('_')[1];
-        let extra = '';
+    collector.on('collect', async (i) => {
+      const id = i.customId;
+      const value = id.split('_')[1];
+      let extra = '';
 
-        if (value === '=') {
-          try {
-            data = math.evaluate(data).toString(); // Evaluate the expression
-          } catch (e) {
-            data = '';
-            extra = "An error occurred. Please click 'AC' to reset.";
-          }
-        } else if (value === 'clear') {
-          data = ''; // Reset data
-          extra = 'Results will be displayed here';
-        } else if (value === 'backspace') {
-          data = data.slice(0, -1); // Remove last character
-        } else {
-          const lastChar = data[data.length - 1];
-          data += ((parseInt(value) == value || value === '.') && (lastChar == parseInt(lastChar) || lastChar === '.') || data.length === 0 ? '' : ' ') + value;
+      if (value === '=') {
+        try {
+          data = math.evaluate(data).toString(); // Evaluate the expression
+        } catch (e) {
+          data = '';
+          extra = "An error occurred. Please click 'AC' to reset.";
         }
+      } else if (value === 'clear') {
+        data = ''; // Reset data
+        extra = 'Results will be displayed here';
+      } else if (value === 'backspace') {
+        data = data.slice(0, -1); // Remove last character
+      } else {
+        data += value; // Append the value directly
+      }
 
-        // Update the message with the new result or display an error
-        await msg.edit({
-          embeds: [
-            new EmbedBuilder()
-              .setColor('Blue')
-              .setDescription(`\`\`\`\n${data || extra}\n\`\`\``),
-          ],
-          components: [row, row1, row2, row3, row4],
-          ephemeral: true,
-        });
+      // Update the message with the new result or display an error
+      await i.update({
+        embeds: [
+          new EmbedBuilder()
+            .setColor('Blue')
+            .setDescription(`\`\`\`\n${data || extra}\n\`\`\``),
+        ],
+        components: [row, row1, row2, row3, row4],
       });
+    });
   } catch (error) {
     console.error(`An error occurred in the calculator command: ${error}`);
   }
