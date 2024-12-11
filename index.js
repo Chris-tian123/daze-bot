@@ -712,6 +712,18 @@ if (content.startsWith(".blacklist")) {
     
         await message.reply({ embeds: [embed] });
     }
+    if (content.startsWith("πinvert")) {
+        const isBlacklisted = await Blacklist.findOne({ userId: message.author.id });
+  if (isBlacklisted) return;
+    const text = content.slice(8).trim();
+    const invertedText = text.split("").reverse().join("");
+    const embed = new EmbedBuilder()
+        .setColor("#D2691E")
+        .setTitle("Inverted Text")
+        .setDescription(`Original: **${text}**\nInverted: **${invertedText}**`)
+        .setTimestamp();
+    await message.reply({ embeds: [embed] });
+    }
     if (content.startsWith("πpromote")) {
           const isBlacklisted = await Blacklist.findOne({ userId: message.author.id });
   if (isBlacklisted) return;
