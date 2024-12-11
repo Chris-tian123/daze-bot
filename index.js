@@ -6,7 +6,8 @@ const Groq = require('groq-sdk');
 const { createCanvas, loadImage, registerFont } = require('canvas');
 const path = require('path');
 const fs = require('fs');
-const lyricsFinder = require('lyrics-finder')
+const lyricsFinder = require('lyrics-finder');
+const math = require('mathjs');
 
 const client = new Client({
     intents: [
