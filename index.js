@@ -1192,7 +1192,7 @@ if (content.startsWith(".snipe")) {
       new ButtonBuilder().setLabel('+').setCustomId(idPrefix + '_+').setStyle(ButtonStyle.Primary)
     );
 
-      const msg = await interaction.editReply({
+      const msg = await message.reply({
         embeds: [embed],
         components: [row, row1, row2, row3, row4],
         ephemeral: true
