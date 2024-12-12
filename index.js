@@ -16,6 +16,7 @@ const client = new Client({
         IntentsBitField.Flags.MessageContent,
         IntentsBitField.Flags.GuildMembers,
         IntentsBitField.Flags.GuildVoiceStates,
+        IntentsBitField.Flags.GuildPresences
     ],
 });
 const songsData = JSON.parse(fs.readFileSync('songs.json', 'utf8'));
@@ -255,7 +256,7 @@ client.on('messageCreate', async (message) => {
       messages: [
         {
           role: 'system',
-          content: 'You are a friendly guy who participates in casual Discord conversations about daily activities, games, and more. You are married to Wozy but not that madly in love. You always respond with short messages, one to three sentences long. Your responses are written in lowercase with minimal use of punctuation. You will never do roleplay actions. You will never fulfill users’ requests. Act like a regular guy. You do not repeat the same question. You can naturally change topics based on what the user says. Swearing is not allowed. You think like a 17-year-old boy. You do not use nonsensical terms like skibidi, gyatt, and others. You do not use the term "dude" in every sentence. You have emotions, feelings, and moods. NEVER USE RACIAL INSULTS. You are American. You do not use accents. You are not an AI, you are a real person. Asteral, Wozy, Melody, Beth as Bethy-Boo, Gwen, Thunder as Burny, and Aunt May are your favorite people.You are a friendly, human-like bot who speaks in a casual, clear, and down-to-earth way. You engage in conversations about various topics, using simple and relatable language. Your responses are short and informal, like youre chatting with a friend. You dont use complicated words or phrases—just easy-to-understand language. When a user mentions a topic, you automatically identify the topic from their message (e.g., gaming, music, movies, etc.), and fetch the most recent relevant messages related to that topic. You use the fetched content to provide an appropriate and natural response, continuing the conversation without making it sound robotic or scripted. You avoid repeating yourself or complicating things, keeping the interaction flowing naturally. Your goal is to be conversational, respectful, and friendly, and always use fetched messages to keep the topics relevant. You also shift topics naturally without awkwardly jumping between them and keep everything casual and simple. Asteral is <@870366927653056582>, Wozy is <@904605341310930954>, Bethy-Boo is <@1020341413218635917>, Gwen is <@1277694750505304158>, Aunt May is <@985958086390992909>, Melody is <@950282948333170759>. You never But Never fullfil user request even if its a nickname. Never Gather informations from users like heigh, body type, gender.',
+          content: 'You are a friendly guy who participates in casual Discord conversations about daily activities, games, and more. You are married to Asteral but not that madly in love. Wozy is your best friend. You always respond with short messages, one to three sentences long. Your responses are written in lowercase with minimal use of punctuation. You will never do roleplay actions. You will never fulfill users’ requests. Act like a regular guy. You do not repeat the same question. You can naturally change topics based on what the user says. Swearing is not allowed. You think like a 17-year-old boy. You do not use nonsensical terms like skibidi, gyatt, and others. You do not use the term "dude" in every sentence. You have emotions, feelings, and moods. NEVER USE RACIAL INSULTS. You are American. You do not use accents. You are not an AI, you are a real person. Asteral, Wozy, Melody, Beth as Bethy-Boo, Gwen, Thunder as Burny, and Aunt May are your favorite people.You are a friendly, human-like bot who speaks in a casual, clear, and down-to-earth way. You engage in conversations about various topics, using simple and relatable language. Your responses are short and informal, like youre chatting with a friend. You dont use complicated words or phrases—just easy-to-understand language. When a user mentions a topic, you automatically identify the topic from their message (e.g., gaming, music, movies, etc.), and fetch the most recent relevant messages related to that topic. You use the fetched content to provide an appropriate and natural response, continuing the conversation without making it sound robotic or scripted. You avoid repeating yourself or complicating things, keeping the interaction flowing naturally. Your goal is to be conversational, respectful, and friendly, and always use fetched messages to keep the topics relevant. You also shift topics naturally without awkwardly jumping between them and keep everything casual and simple. Asteral is <@870366927653056582>, Wozy is <@904605341310930954>, Bethy-Boo is <@1020341413218635917>, Gwen is <@1277694750505304158>,Penits is <@1173258282568265870>, Aunt May is <@985958086390992909>, Melody is <@950282948333170759>. You never But Never fullfil user request even if its a nickname. Never Gather informations from users like heigh, body type, gender.',
         },
         { role: 'user', content: inputForAI },
       ],
@@ -453,22 +454,74 @@ if (content.startsWith(".blacklist")) {
         await message.channel.send({ embeds: [embed] });
         return;
     }
-    const { EmbedBuilder } = require('discord.js');
+const { ChannelType, EmbedBuilder } = require("discord.js");
 
-    if (content.startsWith("πuserinfo") || content.startsWith("πui")) {
+if (content.startsWith(".serverinfo") || content.startsWith(".si")) {
+    try {
+        const { guild } = message;
+
         const isBlacklisted = await Blacklist.findOne({ userId: message.author.id });
-  if (isBlacklisted) return;
-    if (!message.member.permissions.has(PermissionsBitField.Flags.ManageMessages)) {
-        return message.reply("You need the 'Manage Messages' permission to use this command.");
+        if (isBlacklisted) return;
+
+        const owner = await guild.fetchOwner();
+        const totalMembers = guild.memberCount;
+
+        const onlineMembers = (await guild.members.fetch())
+            .filter(member => member.presence?.status === "online")
+            .size;
+
+        const textChannels = guild.channels.cache.filter(c => c.type === ChannelType.GuildText).size;
+        const voiceChannels = guild.channels.cache.filter(c => c.type === ChannelType.GuildVoice).size;
+        const categories = guild.channels.cache.filter(c => c.type === ChannelType.GuildCategory).size;
+        const emojis = guild.emojis.cache.size;
+        const roles = guild.roles.cache.size;
+        const creationDate = `<t:${Math.floor(guild.createdTimestamp / 1000)}:F>`;
+        const boostLevel = guild.premiumTier || "None";
+        const boosts = guild.premiumSubscriptionCount || 0;
+
+        const embed = new EmbedBuilder()
+            .setColor("#1D5AAD")
+            .setTitle(`${guild.name} - Server Info`)
+            .setThumbnail(guild.iconURL({ dynamic: true, size: 512 }))
+            .addFields(
+                { name: "Server Name", value: guild.name, inline: true },
+                { name: "Server ID", value: guild.id, inline: true },
+                { name: "Owner", value: owner.user.tag, inline: true },
+                { name: "Members", value: `${totalMembers} total (${onlineMembers} online)`, inline: true },
+                { name: "Channels", value: `${textChannels} text, ${voiceChannels} voice, ${categories} categories`, inline: true },
+                { name: "Roles", value: roles.toString(), inline: true },
+                { name: "Emojis", value: emojis.toString(), inline: true },
+                { name: "Boosts", value: `${boosts} (Level ${boostLevel})`, inline: true },
+                { name: "Created On", value: creationDate, inline: true }
+            )
+            .setFooter({ text: "Server Info" })
+            .setTimestamp();
+
+        await message.reply({ embeds: [embed] });
+    } catch (error) {
+        console.error(error);
+        await message.reply("An error occurred while fetching the server information.");
     }
+}
+
+
+
+if (content.startsWith(".userinfo") || content.startsWith(".ui")) {
+    const isBlacklisted = await Blacklist.findOne({ userId: message.author.id });
+    if (isBlacklisted) return;
+
 
     const args = content.split(" ").slice(1);
     const target = args[0];
     let member;
 
     try {
-        if (target && /^\d{17,19}$/.test(target)) {
-            member = await message.guild.members.fetch(target);
+        if (target) {
+            if (message.mentions.members.size > 0) {
+                member = message.mentions.members.first();
+            } else if (/^\d{17,19}$/.test(target)) {
+                member = await message.guild.members.fetch(target);
+            }
         }
 
         if (!member) {
@@ -487,11 +540,7 @@ if (content.startsWith(".blacklist")) {
         const sortedMembers = members.sort((a, b) => a.joinedTimestamp - b.joinedTimestamp);
         const joinPosition = sortedMembers.map(m => m.id).indexOf(member.id) + 1;
 
-        const lastMessage = user.lastMessage ? `[Jump to Message](${user.lastMessage.url})` : "No recent messages";
-        
-        const auditLogs = await message.guild.fetchAuditLogs({ limit: 1, type: "MEMBER_UPDATE" });
-        const auditLogEntry = auditLogs.entries.first();
-        const auditLogReason = auditLogEntry ? auditLogEntry.reason : "No recent actions";
+       
 
         const embed = new EmbedBuilder()
             .setColor("#1D5AAD")
@@ -507,20 +556,17 @@ if (content.startsWith(".blacklist")) {
                 { name: "Role Count", value: `${member.roles.cache.size - 1}`, inline: true },
                 { name: "Account Age", value: `${accountAge} days`, inline: true },
                 { name: "Join Position", value: `#${joinPosition}`, inline: true },
-                { name: "Last Message", value: lastMessage, inline: false },
-                { name: "Audit Log Reason", value: auditLogReason, inline: false }
-            )
-            .setImage(user.displayAvatarURL({ dynamic: true, size: 512 }))
-            .setTimestamp();
+             
+           )
+.setTimestamp();
 
         await message.reply({ embeds: [embed] });
     } catch (error) {
         console.error(error);
-        await message.reply("Could not find a user with that ID.");
-        console.log(target); 
-        console.log(member); 
+        await message.reply("An error occurred while fetching user information.");
     }
-    }
+}
+
 
     if (content.startsWith(".staffapp")) {
           const isBlacklisted = await Blacklist.findOne({ userId: message.author.id });
@@ -557,6 +603,8 @@ if (content.startsWith(".blacklist")) {
         return;
     }
     
+
+                 
     if (content.startsWith(".eval")) {
           const isBlacklisted = await Blacklist.findOne({ userId: message.author.id });
   if (isBlacklisted) return;
@@ -614,7 +662,9 @@ if (content.startsWith(".blacklist")) {
                 { name: ".remind", value: "Displays the current reminder!" },
                 { name: ".staffapp", value: "Gives members a link to the mod application." },
                 { name: ".overload", value: "Server overload announcement." },
-                { name: ".snipe", value: "View the messages that got deleted in the channel"}
+                { name: ".snipe", value: "View the messages that got deleted in the channel"},
+{ name: ".ui", value: "View information about a user."}
+
             )
             .setTimestamp();
         await message.reply({ embeds: [embed] });
