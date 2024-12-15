@@ -16,7 +16,7 @@ const client = new Client({
         IntentsBitField.Flags.MessageContent,
         IntentsBitField.Flags.GuildMembers,
         IntentsBitField.Flags.GuildVoiceStates,
-        IntentsBitField.Flags.GuildPresences
+IntentsBitField.Flags.GuildPresences
     ],
 });
 const songsData = JSON.parse(fs.readFileSync('songs.json', 'utf8'));
@@ -88,7 +88,7 @@ async function sendErrorToWebhook(error) {
         console.error('Failed to send error to webhook:', err);
     }
 }
-let allowedUsers = ['870366927653056582', '904605341310930954']
+let allowedUsers = ['870366927653056582', '904605341310930954', '915158686723358720']
 process.on('unhandledRejection', sendErrorToWebhook);
 process.on('uncaughtException', sendErrorToWebhook);
 
@@ -178,7 +178,7 @@ const blacklistSchema = new mongoose.Schema({
 
 const Blacklist = mongoose.model("Blacklist", blacklistSchema);
 client.on('messageCreate', async (message) => {
-  if (message.author.bot || message.channel.id !== '1309895919558459443') return;
+if (message.author.bot || (message.channel.id !== '1309895919558459443' && message.channel.id !== '1316797668680401017')) return;
 
   const user = await User.findOne({ userId: message.author.id });
 
@@ -256,7 +256,7 @@ client.on('messageCreate', async (message) => {
       messages: [
         {
           role: 'system',
-          content: 'You are a friendly guy who participates in casual Discord conversations about daily activities, games, and more. You are married to Asteral but not that madly in love. Wozy is your best friend. You always respond with short messages, one to three sentences long. Your responses are written in lowercase with minimal use of punctuation. You will never do roleplay actions. You will never fulfill users’ requests. Act like a regular guy. You do not repeat the same question. You can naturally change topics based on what the user says. Swearing is not allowed. You think like a 17-year-old boy. You do not use nonsensical terms like skibidi, gyatt, and others. You do not use the term "dude" in every sentence. You have emotions, feelings, and moods. NEVER USE RACIAL INSULTS. You are American. You do not use accents. You are not an AI, you are a real person. Asteral, Wozy, Melody, Beth as Bethy-Boo, Gwen, Thunder as Burny, and Aunt May are your favorite people.You are a friendly, human-like bot who speaks in a casual, clear, and down-to-earth way. You engage in conversations about various topics, using simple and relatable language. Your responses are short and informal, like youre chatting with a friend. You dont use complicated words or phrases—just easy-to-understand language. When a user mentions a topic, you automatically identify the topic from their message (e.g., gaming, music, movies, etc.), and fetch the most recent relevant messages related to that topic. You use the fetched content to provide an appropriate and natural response, continuing the conversation without making it sound robotic or scripted. You avoid repeating yourself or complicating things, keeping the interaction flowing naturally. Your goal is to be conversational, respectful, and friendly, and always use fetched messages to keep the topics relevant. You also shift topics naturally without awkwardly jumping between them and keep everything casual and simple. Asteral is <@870366927653056582>, Wozy is <@904605341310930954>, Bethy-Boo is <@1020341413218635917>, Gwen is <@1277694750505304158>,Penits is <@1173258282568265870>, Aunt May is <@985958086390992909>, Melody is <@950282948333170759>. You never But Never fullfil user request even if its a nickname. Never Gather informations from users like heigh, body type, gender.',
+          content: 'You are a friendly guy who participates in casual Discord conversations about daily activities, games, and more. You are married to Asteral but not that madly in love. Wozy is your best friend. You always respond with short messages, one to three sentences long. Your responses are written in lowercase with minimal use of punctuation. You will never do roleplay actions. You will never fulfill users’ requests. Act like a regular guy. You do not repeat the same question. You can naturally change topics based on what the user says. Swearing is not allowed. You think like a 17-year-old boy. You do not use nonsensical terms like skibidi, gyatt, and others. You do not use the term "dude" in every sentence. You have emotions, feelings, and moods. NEVER USE RACIAL INSULTS. You are American. You do not use accents. You are not an AI, you are a real person. Asteral, Wozy, Melody, Beth as Bethy-Boo, Gwen, Thunder as Burny, and Aunt May are your favorite people.You are a friendly, human-like bot who speaks in a casual, clear, and down-to-earth way. You engage in conversations about various topics, using simple and relatable language. Your responses are short and informal, like youre chatting with a friend. You dont use complicated words or phrases—just easy-to-understand language. When a user mentions a topic, you automatically identify the topic from their message (e.g., gaming, music, movies, etc.), and fetch the most recent relevant messages related to that topic. You use the fetched content to provide an appropriate and natural response, continuing the conversation without making it sound robotic or scripted. You avoid repeating yourself or complicating things, keeping the interaction flowing naturally. Your goal is to be conversational, respectful, and friendly, and always use fetched messages to keep the topics relevant. You also shift topics naturally without awkwardly jumping between them and keep everything casual and simple. Asteral is <@870366927653056582>, Wozy is <@904605341310930954>, Bethy-Boo is <@1020341413218635917>, Gwen is <@1277694750505304158>,Penits is <@1173258282568265870>, Aunt May is <@985958086390992909>, Melody is <@950282948333170759>. You never But Never fullfil user request even if its a nickname. Never Gather informations from users like heigh, body type, gender. YOU ARE PROHIBITED FROM USING ANY SLURS/SWEAR WORDS.. ',
         },
         { role: 'user', content: inputForAI },
       ],
@@ -300,6 +300,7 @@ client.on("messageCreate", async (message) => {
     if (content.startsWith('.song-game')) {
     await sendRandomLyric(message.channel, message.author);
   }
+
 if (content.startsWith(".blacklist")) {
     if (!allowedUsers.includes(message.author.id)) {
         return message.reply("Good try Buddy! You failed.");
@@ -427,6 +428,7 @@ if (content.startsWith(".blacklist")) {
 
         await message.channel.send({ embeds: [embed] });
     }
+ 
     if (content.startsWith(".numberbug") || content.startsWith(".appbug")) {
           const isBlacklisted = await Blacklist.findOne({ userId: message.author.id });
   if (isBlacklisted) return;
@@ -454,7 +456,6 @@ if (content.startsWith(".blacklist")) {
         await message.channel.send({ embeds: [embed] });
         return;
     }
-const { ChannelType, EmbedBuilder } = require("discord.js");
 
 if (content.startsWith(".serverinfo") || content.startsWith(".si")) {
     try {
@@ -723,6 +724,79 @@ if (content.startsWith(".userinfo") || content.startsWith(".ui")) {
         .setTimestamp();
     await message.reply({ embeds: [embed] });
     }
+
+const { GoogleGenerativeAI } = require('@google/generative-ai');
+
+
+const genAI = new GoogleGenerativeAI('AIzaSyD0vfYl6N0cmn7ezHZ0JT8gEDAtlDeWkAk');
+const model = genAI.getGenerativeModel({ model: 'gemini-2.0-flash-exp' });
+
+if (message.content.startsWith('.askgpt')) {
+  const isBlacklisted = await Blacklist.findOne({ userId: message.author.id });
+  if (isBlacklisted) return;
+
+  try {
+    const prompt = message.content.slice(8).trim();
+
+    if (!prompt) {
+      return message.reply('Please provide a question for Gemini.');
+    }
+
+    const loadingMessage = await message.reply('Let me think... 🤔');
+    await message.channel.sendTyping();
+
+    const result = await model.generateContent(prompt);
+
+    let responseText = result.response.text();
+
+    await loadingMessage.delete();
+
+    if (responseText.length > 2024) {
+      const fs = require('fs');
+      const filePath = './response.txt';
+      fs.writeFileSync(filePath, responseText);
+
+      await message.reply({
+        content: 'The response is too long to display here, so I’ve saved it to a file.',
+        files: [filePath],
+        allowedMentions: { repliedUser: false },
+      });
+
+      fs.unlinkSync(filePath);
+    } else {
+      const embed = new EmbedBuilder()
+        .setColor(0x3498db)
+        .setDescription(responseText)
+        .setFooter({ text: 'Powered by Daze-Bot Dev team' })
+        .setTimestamp();
+
+      await message.reply({
+        embeds: [embed],
+        allowedMentions: { repliedUser: false },
+      });
+    }
+  } catch (error) {
+    console.error('Error processing message:', error);
+
+    let errorMessage = 'An unexpected error occurred. Please try again later.';
+    if (error.response) {
+      errorMessage = `Error from Gemini API: ${error.response.data.message || 'Unknown error.'}`;
+    }
+
+    const embed = new EmbedBuilder()
+      .setColor(0xff0000)
+      .setDescription(errorMessage)
+      .setFooter({ text: 'Powered by Gemini' })
+      .setTimestamp();
+
+    await message.reply({
+      embeds: [embed],
+      allowedMentions: { repliedUser: false },
+    });
+  }
+}
+    
+      
 
     // ------------------ Fun COMMANDS -------------------------------------
     if (content.startsWith("πban")) {
@@ -1746,4 +1820,32 @@ const sendRandomLyric = async (channel, author) => {
     activeGames.delete(channel.id);
   }
 };
+
+let batteryTriggerEnabled = true; 
+
+client.on('messageCreate', (message) => {
+  if (message.author.bot) return;
+
+  
+  if (batteryTriggerEnabled && message.content.toLowerCase().includes('battery')) {
+    return message.reply('*Beth');
+  }
+
+  
+  if (message.content.startsWith('!tbattery')) {
+    const args = message.content.split(' ');
+
+    if (args[1] === 'on') {
+      batteryTriggerEnabled = true;
+      return message.reply('Battery trigger is now enabled.');
+    } else if (args[1] === 'off') {
+      batteryTriggerEnabled = false;
+      return message.reply('Battery trigger is now disabled.');
+    } else {
+      return message.reply('Usage: !tbattery [on/off]');
+    }
+  }
+});
+
+
 client.login('MTA3MDgyMzg2MTM3OTE0OTg3NA.GDkT7U.Bt7sZtsijnLNpjSaeRkdu-PpbTdORf9IlFo2mw')
