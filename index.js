@@ -27,7 +27,7 @@ let usedSongs = [];
 let isActive = false;
 const groq = new Groq({ apiKey: "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" });
 registerFont(path.join(__dirname, 'BebasNeue-Regular.ttf'), { family: 'Bebas Neue' });
-const dbURI = "mongodb+srv://Asteral:IAMASWIFTIEGURL@cluster0.ohlpp.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0";
+const dbURI = "mongoDB";
 mongoose.connect(dbURI)
     .then(() => console.log("Connected to MongoDB".yellow))
     .catch((err) => console.error("Failed to connect the MongoDB", err));
@@ -1848,4 +1848,4 @@ client.on('messageCreate', (message) => {
 });
 
 
-client.login('MTA3MDgyMzg2MTM3OTE0OTg3NA.GDkT7U.Bt7sZtsijnLNpjSaeRkdu-PpbTdORf9IlFo2mw')
+client.login('Token')
